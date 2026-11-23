@@ -28,6 +28,7 @@ class RestaurantSettings
         'pickup_enabled' => 'bool',
         'cod_enabled' => 'bool',
         'payhere_enabled' => 'bool',
+        'stripe_enabled' => 'bool',
         'delivery_fee' => 'money',
         'free_delivery_threshold' => 'nullable_money',
         'minimum_order_amount' => 'money',
@@ -141,7 +142,7 @@ class RestaurantSettings
 
     public function paymentMethodEnabled(PaymentMethod $method): bool
     {
-        return $this->all()[$method === PaymentMethod::PayHere ? 'payhere_enabled' : 'cod_enabled'];
+        return $this->all()[$method->settingKey()];
     }
 
     public function deliveryFee(): int

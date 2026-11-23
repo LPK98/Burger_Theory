@@ -23,7 +23,7 @@ class PayHereCheckoutTest extends TestCase
     public function test_checkout_returns_signed_fields_without_the_secret(): void
     {
         $user = $this->customer(['name' => 'Nimali Perera', 'email' => 'nimali@example.com']);
-        $product = Product::factory()->price(172500)->create();
+        $product = Product::factory()->price(1725)->create();
         $number = $this->placeOrder($user, [[$product, 2]], 'payhere', 'delivery', [
             'address' => ['recipient_name' => 'Nimali', 'phone' => '0771234567', 'line1' => '12 Galle Road 🍔', 'city' => 'Colombo'],
         ])->assertCreated()->json('data.order_number');
@@ -35,15 +35,15 @@ class PayHereCheckoutTest extends TestCase
         $this->assertTrue($response->json('data.sandbox'));
         $this->assertSame('1211149', $fields['merchant_id']);
         $this->assertSame("{$number}-1", $fields['order_id']);
-        $this->assertSame('3800.00', $fields['amount']); // 2 × 1,725.00 + LKR 350 delivery (below the free-delivery threshold)
-        $this->assertSame('LKR', $fields['currency']);
+        $this->assertSame('38.00', $fields['amount']); // 2 × $17.25 + $3.50 delivery (below the free-delivery threshold)
+        $this->assertSame('USD', $fields['currency']);
         $this->assertSame('Nimali', $fields['first_name']);
         $this->assertSame('Perera', $fields['last_name']);
         $this->assertSame('12 Galle Road', $fields['address']); // emoji stripped for PayHere
         $this->assertSame(url('/api/v1/payments/payhere/notify'), $fields['notify_url']);
         $this->assertStringStartsWith('http://localhost:5173/checkout/complete?order=', $fields['return_url']);
 
-        $expected = strtoupper(md5('1211149'."{$number}-1".'3800.00'.'LKR'.strtoupper(md5('test-merchant-secret'))));
+        $expected = strtoupper(md5('1211149'."{$number}-1".'38.00'.'USD'.strtoupper(md5('test-merchant-secret'))));
         $this->assertSame($expected, $fields['hash']);
 
         $this->assertStringNotContainsString('test-merchant-secret', $response->getContent());

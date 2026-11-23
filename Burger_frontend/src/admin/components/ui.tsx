@@ -373,7 +373,7 @@ export function Pagination({ page, lastPage, total, from, to, onPage, noun = 're
   return (
     <nav aria-label="Pagination" className="flex flex-wrap items-center justify-between gap-3 border-t border-rule px-5 py-3 text-[0.8125rem] text-grey">
       <p className="tabular">
-        {from}–{to} of {total.toLocaleString('en-LK')} {noun}
+        {from}–{to} of {total.toLocaleString('en-US')} {noun}
       </p>
       <div className="flex items-center gap-1">
         <IconButton label="Previous page" disabled={page <= 1} onClick={() => onPage(page - 1)}>

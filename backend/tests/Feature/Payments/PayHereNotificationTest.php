@@ -90,7 +90,7 @@ class PayHereNotificationTest extends TestCase
     {
         // Correctly signed (e.g. by someone holding a leaked secret) but for less money.
         $this->postPayHereNotification($this->payHereNotification($this->reference, '1.00', 2))->assertStatus(400);
-        $this->postPayHereNotification($this->payHereNotification($this->reference, '2900.00', 2, ['payhere_currency' => 'USD']))->assertStatus(400);
+        $this->postPayHereNotification($this->payHereNotification($this->reference, '2900.00', 2, ['payhere_currency' => 'LKR']))->assertStatus(400);
 
         $this->assertSame('pending', $this->order->refresh()->payment_status->value);
         $this->assertSame(2, PaymentEvent::query()->where('outcome_reason', 'amount_mismatch')->count());

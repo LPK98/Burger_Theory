@@ -21,6 +21,7 @@ use App\Services\Cart\AddonSelection;
 use App\Services\Cart\PricingService;
 use App\Services\Coupon\CouponService;
 use App\Services\Payment\PayHere\PayHereConfig;
+use App\Services\Payment\Stripe\StripeConfig;
 use App\Services\Product\InventoryService;
 use App\Services\Settings\RestaurantSettings;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -43,6 +44,7 @@ class OrderPlacementService
         private readonly OrderNumberGenerator $numbers,
         private readonly OrderNotifier $notifier,
         private readonly PayHereConfig $payHere,
+        private readonly StripeConfig $stripe,
         private readonly AddonSelection $addons,
     ) {}
 
@@ -133,7 +135,7 @@ class OrderPlacementService
         $deliveryFee = $this->pricing->deliveryFee($data->fulfilment, $subtotal - $discount);
         $total = $subtotal - $discount + $deliveryFee;
 
-        if ($data->paymentMethod === PaymentMethod::PayHere && $total <= 0) {
+        if ($data->paymentMethod->isOnline() && $total <= 0) {
             throw OrderException::onlinePaymentNeedsAmount();
         }
 
@@ -231,6 +233,9 @@ class OrderPlacementService
             throw OrderException::paymentMethodUnavailable($data->paymentMethod);
         }
         if ($data->paymentMethod === PaymentMethod::PayHere && ! $this->payHere->isConfigured()) {
+            throw PaymentException::gatewayNotConfigured();
+        }
+        if ($data->paymentMethod === PaymentMethod::Stripe && ! $this->stripe->isConfigured()) {
             throw PaymentException::gatewayNotConfigured();
         }
     }

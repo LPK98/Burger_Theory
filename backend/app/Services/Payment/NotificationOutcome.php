@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Services\Payment\PayHere;
+namespace App\Services\Payment;
 
 enum NotificationOutcome: string
 {
     /** Verified and applied. */
     case Processed = 'processed';
-    /** Verified, but already applied earlier (PayHere retried). */
+    /** Verified, but already applied earlier (the gateway retried). */
     case Duplicate = 'duplicate';
     /** Verified, but would move the payment backwards (e.g. "pending" after "paid"). */
     case Ignored = 'ignored';

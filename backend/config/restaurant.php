@@ -11,7 +11,7 @@
 return [
     'name' => env('RESTAURANT_NAME', 'Burger Theory'),
 
-    'currency' => 'LKR',
+    'currency' => 'USD',
 
     'country' => env('RESTAURANT_COUNTRY', 'Sri Lanka'),
 
@@ -46,9 +46,10 @@ return [
         'pickup_enabled' => true,
         'cod_enabled' => true,
         'payhere_enabled' => true,
-        'delivery_fee' => 35000,            // LKR 350.00
-        'free_delivery_threshold' => 500000, // LKR 5,000.00 after discounts; null disables free delivery
-        'minimum_order_amount' => 100000,    // LKR 1,000.00 subtotal
+        'stripe_enabled' => true,
+        'delivery_fee' => 350,               // $3.50
+        'free_delivery_threshold' => 5000,   // $50.00 after discounts; null disables free delivery
+        'minimum_order_amount' => 1000,      // $10.00 subtotal
         'estimated_preparation_minutes' => 25,
 
         // Restaurant profile, editable in the admin portal (Settings).

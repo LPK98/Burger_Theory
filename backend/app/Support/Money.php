@@ -5,7 +5,7 @@ namespace App\Support;
 use InvalidArgumentException;
 
 /**
- * Money helpers. The database stores NUMERIC(10,2) rupees; everything in PHP and in
+ * Money helpers. The database stores NUMERIC(10,2) amounts (dollars, the restaurant currency); everything in PHP and in
  * the API is an integer number of minor units (cents), so arithmetic is exact and
  * never touches floating point.
  */
@@ -42,8 +42,8 @@ final class Money
         return sprintf('%s%d.%02d', $sign, intdiv($abs, 100), $abs % 100);
     }
 
-    /** 145000 → "LKR 1,450.00" */
-    public static function format(int $minor, string $currency = 'LKR'): string
+    /** 145000 → "USD 1,450.00" */
+    public static function format(int $minor, string $currency = 'USD'): string
     {
         $sign = $minor < 0 ? '-' : '';
         $abs = abs($minor);

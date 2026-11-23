@@ -5,7 +5,7 @@ import { Link } from 'react-router'
 import { cn } from '../../lib/utils'
 import { ApiError, errorMessage } from '../lib/api'
 import { categories as categoriesApi, inventory, products, settings } from '../lib/endpoints'
-import { centsToRupees, dateTime, rupeesToCents } from '../lib/format'
+import { centsToDollars, dateTime, dollarsToCents } from '../lib/format'
 import type { Product, ProductInput } from '../lib/types'
 import { Drawer } from './overlay'
 import { useConfirm, useToast } from './overlay-context'
@@ -46,8 +46,8 @@ function toForm(p: Product): Form {
   return {
     name: p.name,
     description: p.description ?? '',
-    price: centsToRupees(p.price),
-    compare_at_price: centsToRupees(p.compare_at_price),
+    price: centsToDollars(p.price),
+    compare_at_price: centsToDollars(p.compare_at_price),
     badge: p.badge ?? '',
     is_available: p.is_available,
     is_featured: p.is_featured,
@@ -134,11 +134,11 @@ function DetailsForm({ initial, product, onSaved }: { initial: Form; product?: P
   const submit = (e: FormEvent) => {
     e.preventDefault()
     const found: Errors = {}
-    const price = rupeesToCents(form.price)
-    const compare = form.compare_at_price.trim() ? rupeesToCents(form.compare_at_price) : null
+    const price = dollarsToCents(form.price)
+    const compare = form.compare_at_price.trim() ? dollarsToCents(form.compare_at_price) : null
     if (!form.name.trim()) found.name = 'Give the product a name.'
-    if (price === null) found.price = 'Enter a price in rupees, e.g. 1450 or 1450.50.'
-    if (form.compare_at_price.trim() && compare === null) found.compare_at_price = 'Enter a price in rupees.'
+    if (price === null) found.price = 'Enter a price in dollars, e.g. 14.50.'
+    if (form.compare_at_price.trim() && compare === null) found.compare_at_price = 'Enter a price in dollars.'
     else if (compare !== null && price !== null && compare <= price) found.compare_at_price = 'The original price must be higher than the price.'
     if (form.category_ids.length === 0) found.category_ids = 'Choose at least one category.'
     const threshold = Number(form.low_stock_threshold)
@@ -170,11 +170,11 @@ function DetailsForm({ initial, product, onSaved }: { initial: Form; product?: P
       <TextField label="Name" value={form.name} onChange={(e) => update('name', e.target.value)} error={errors.name} maxLength={120} />
       <TextArea label="Description" optional value={form.description} onChange={(e) => update('description', e.target.value)} error={errors.description} maxLength={2000} rows={3} />
       <div className="grid gap-4 sm:grid-cols-3">
-        <TextField label="Price" prefix="Rs" inputMode="decimal" value={form.price} onChange={(e) => update('price', e.target.value)} error={errors.price} placeholder="1450" />
+        <TextField label="Price" prefix="$" inputMode="decimal" value={form.price} onChange={(e) => update('price', e.target.value)} error={errors.price} placeholder="14.50" />
         <TextField
           label="Original price"
           optional
-          prefix="Rs"
+          prefix="$"
           inputMode="decimal"
           value={form.compare_at_price}
           onChange={(e) => update('compare_at_price', e.target.value)}

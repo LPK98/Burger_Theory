@@ -36,6 +36,7 @@ import type {
   RegisterRequest,
   RestaurantInfo,
   Review,
+  StripeCheckout,
   User,
   ValidationErrorBody,
 } from './types'
@@ -281,7 +282,7 @@ export const orders = {
   cancel: async (orderNumber: string, reason?: string) => unwrap(await http.post<ApiItem<Order>>(`/orders/${encodeURIComponent(orderNumber)}/cancel`, { reason })),
 
   /**
-   * After PayHere sends the shopper back to return_url, wait for the server-side
+   * After PayHere or Stripe sends the shopper back, wait for the server-side
    * notification to land. Resolves with the order once payment is no longer pending.
    */
   async waitForPayment(orderNumber: string, { intervalMs = 2500, timeoutMs = 60_000 } = {}): Promise<Order> {
@@ -297,6 +298,13 @@ export const orders = {
 // ── Payments ──────────────────────────────────────────────────────────────────
 
 export const payments = {
+  /** Opens (or reuses) a Stripe Checkout page for a `stripe` order. */
+  startStripe: async (orderNumber: string) => unwrap(await http.post<ApiItem<StripeCheckout>>('/payments/stripe', { order_number: orderNumber })),
+  /**
+   * After Stripe sends the shopper back: the server asks Stripe for the session and applies
+   * it (the webhook remains the source of truth). Returns the up-to-date order.
+   */
+  confirmStripe: async (orderNumber: string) => unwrap(await http.post<ApiItem<Order>>('/payments/stripe/confirm', { order_number: orderNumber })),
   startPayHere: async (orderNumber: string) => unwrap(await http.post<ApiItem<PayHereCheckout>>('/payments/payhere', { order_number: orderNumber })),
   get: async (reference: string) => unwrap(await http.get<ApiItem<Payment>>(`/payments/${encodeURIComponent(reference)}`)),
 

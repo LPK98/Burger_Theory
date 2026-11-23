@@ -70,7 +70,7 @@ export default function ReportsPage() {
 
   const exportCsv = () => {
     if (!sales.data) return
-    const rows = [['period', 'paid_orders', 'revenue_lkr', 'discounts_lkr', 'orders_placed', 'cancelled_or_rejected'], ...sales.data.series.map((s) => [s.period, s.orders, (s.revenue / 100).toFixed(2), (s.discounts / 100).toFixed(2), s.placed, s.cancelled])]
+    const rows = [['period', 'paid_orders', 'revenue_usd', 'discounts_usd', 'orders_placed', 'cancelled_or_rejected'], ...sales.data.series.map((s) => [s.period, s.orders, (s.revenue / 100).toFixed(2), (s.discounts / 100).toFixed(2), s.placed, s.cancelled])]
     const blob = new Blob([rows.map((r) => r.join(',')).join('\n')], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = Object.assign(document.createElement('a'), { href: url, download: `burger-theory-sales-${interval}-${from}-to-${to}.csv` })

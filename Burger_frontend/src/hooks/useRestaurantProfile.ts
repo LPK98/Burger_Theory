@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { menu } from '../services/api/client'
-import type { RestaurantProfile } from '../services/api/types'
+import type { FulfilmentType, PaymentMethod, RestaurantInfo, RestaurantProfile } from '../services/api/types'
 
 /**
  * The restaurant's contact details, address and social links from GET /restaurant, as an
@@ -8,12 +8,28 @@ import type { RestaurantProfile } from '../services/api/types'
  * section, footer, mobile menu and cart; refetched when the tab becomes visible again.
  */
 
+/** What checkout may offer right now (enabled in the admin portal and configured on the server). */
+export interface OrderingOptions {
+  acceptingOrders: boolean
+  fulfilmentTypes: FulfilmentType[]
+  paymentMethods: PaymentMethod[]
+  currency: string
+}
+
+const orderingFrom = (info: RestaurantInfo): OrderingOptions => ({
+  acceptingOrders: info.accepting_orders,
+  fulfilmentTypes: info.fulfilment_types,
+  paymentMethods: info.payment_methods,
+  currency: info.currency,
+})
+
 interface ProfileState {
   profile: RestaurantProfile | null
+  ordering: OrderingOptions | null
   status: 'idle' | 'loading' | 'ready' | 'error'
 }
 
-let state: ProfileState = { profile: null, status: 'idle' }
+let state: ProfileState = { profile: null, ordering: null, status: 'idle' }
 const listeners = new Set<() => void>()
 let inFlight: Promise<void> | null = null
 let lastFetch = 0
@@ -29,7 +45,7 @@ function load(): Promise<void> {
   lastFetch = Date.now()
   inFlight = menu
     .restaurant()
-    .then((info) => set({ profile: info.profile, status: 'ready' }))
+    .then((info) => set({ profile: info.profile, ordering: orderingFrom(info), status: 'ready' }))
     .catch(() => set({ status: state.profile ? 'ready' : 'error' }))
     .finally(() => {
       inFlight = null

@@ -68,7 +68,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="Dashboard" description="Revenue counts paid orders only: PayHere payments verified by the server, and cash recorded as collected." />
+      <PageHeader title="Dashboard" description="Revenue counts paid orders only: online payments verified by the server, and cash recorded as collected." />
 
       {/* Headline figures */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-[1.6fr_repeat(5,1fr)]">

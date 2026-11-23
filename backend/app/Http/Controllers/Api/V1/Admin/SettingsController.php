@@ -6,6 +6,7 @@ use App\Exceptions\ImageStorageException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Services\Payment\PayHere\PayHereConfig;
+use App\Services\Payment\Stripe\StripeConfig;
 use App\Services\Product\Images\ImageStorage;
 use App\Services\Settings\RestaurantSettings;
 use Illuminate\Http\JsonResponse;
@@ -20,6 +21,7 @@ class SettingsController extends Controller
         private readonly RestaurantSettings $settings,
         private readonly ImageStorage $images,
         private readonly PayHereConfig $payHere,
+        private readonly StripeConfig $stripe,
     ) {}
 
     /**
@@ -91,6 +93,9 @@ class SettingsController extends Controller
                 'cloudinary' => $this->images->isConfigured(),
                 'payhere' => $this->payHere->isConfigured(),
                 'payhere_sandbox' => $this->payHere->isSandbox(),
+                'stripe' => $this->stripe->isConfigured(),
+                'stripe_webhook' => $this->stripe->webhookConfigured(),
+                'stripe_test_mode' => $this->stripe->isTestMode(),
                 'currency' => (string) config('restaurant.currency'),
                 'timezone' => (string) config('restaurant.timezone'),
             ]],

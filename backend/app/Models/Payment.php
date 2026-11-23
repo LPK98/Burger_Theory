@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'order_id', 'method', 'status', 'amount', 'currency', 'reference', 'provider_payment_id', 'provider_status_code',
     'provider_status_message', 'provider_method', 'card_mask', 'collected_by_id', 'collected_at', 'paid_at',
+    'provider_checkout_id', 'checkout_url', 'checkout_expires_at',
 ])]
 #[RouteKey('reference')]
 class Payment extends Model
@@ -28,6 +29,7 @@ class Payment extends Model
             'provider_status_code' => 'integer',
             'collected_at' => 'immutable_datetime',
             'paid_at' => 'immutable_datetime',
+            'checkout_expires_at' => 'immutable_datetime',
         ];
     }
 

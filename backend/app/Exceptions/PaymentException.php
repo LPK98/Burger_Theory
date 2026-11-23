@@ -9,6 +9,11 @@ class PaymentException extends ApiException
         return new self('Online payment is not configured.', 'payment_gateway_not_configured', 503);
     }
 
+    public static function gatewayError(): self
+    {
+        return new self('The payment provider could not be reached. Please try again in a moment.', 'payment_gateway_error', 502);
+    }
+
     public static function notPayable(string $reason): self
     {
         return new self($reason, 'order_not_payable', 409);

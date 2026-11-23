@@ -81,7 +81,7 @@ export default function ProductsPage() {
     <>
       <PageHeader
         title="Products"
-        description="The burgers on the menu: prices in LKR, photos, availability, stock and recipes."
+        description="The burgers on the menu: prices in USD, photos, availability, stock and recipes."
         actions={
           <Button variant="primary" icon={<Plus className="h-4 w-4" aria-hidden="true" />} onClick={() => set({ edit: 'new', page })}>
             Add product

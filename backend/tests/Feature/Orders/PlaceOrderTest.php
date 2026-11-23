@@ -27,8 +27,8 @@ class PlaceOrderTest extends TestCase
     {
         $admin = $this->admin();
         $user = $this->customer(['name' => 'Nimali Perera']);
-        $classic = Product::factory()->price(145000)->stock(10)->create(['name' => 'The Theory Classic']);
-        $stack = Product::factory()->price(210000)->stock(5)->create(['name' => 'The Ultimate Stack']);
+        $classic = Product::factory()->price(1450)->stock(10)->create(['name' => 'The Theory Classic']);
+        $stack = Product::factory()->price(2100)->stock(5)->create(['name' => 'The Ultimate Stack']);
 
         $response = $this->placeOrder($user, [[$classic, 2], [$stack, 1]], 'cod', 'delivery', [
             'address' => [
@@ -46,11 +46,11 @@ class PlaceOrderTest extends TestCase
             ->assertJsonPath('data.status', 'pending')
             ->assertJsonPath('data.payment_method', 'cod')
             ->assertJsonPath('data.payment_status', 'pending')
-            ->assertJsonPath('data.subtotal', 500000)
-            ->assertJsonPath('data.delivery_fee', 0) // LKR 5,000 reaches the free-delivery threshold
-            ->assertJsonPath('data.total', 500000)
+            ->assertJsonPath('data.subtotal', 5000)
+            ->assertJsonPath('data.delivery_fee', 0) // $50 reaches the free-delivery threshold
+            ->assertJsonPath('data.total', 5000)
             ->assertJsonPath('data.items.0.name', 'The Theory Classic')
-            ->assertJsonPath('data.items.0.unit_price', 145000)
+            ->assertJsonPath('data.items.0.unit_price', 1450)
             ->assertJsonPath('data.delivery_address.line1', '12 Galle Road')
             ->assertJsonPath('data.payment.status', 'pending')
             ->assertJsonPath('data.timeline.0.status', 'pending')
@@ -68,7 +68,7 @@ class PlaceOrderTest extends TestCase
         // Later price and profile changes do not touch the order.
         $classic->update(['price' => 999900, 'name' => 'Renamed']);
         $this->getJson('/api/v1/orders/'.$response->json('data.order_number'), $this->bearer($user))
-            ->assertJsonPath('data.items.0.unit_price', 145000)
+            ->assertJsonPath('data.items.0.unit_price', 1450)
             ->assertJsonPath('data.items.0.name', 'The Theory Classic');
 
         Notification::assertSentTo($user, OrderPlaced::class);
@@ -79,12 +79,12 @@ class PlaceOrderTest extends TestCase
     {
         $user = $this->customer();
         $address = Address::factory()->for($user)->create();
-        $product = Product::factory()->price(145000)->create();
+        $product = Product::factory()->price(1450)->create();
 
         $this->placeOrder($user, [[$product, 1]], 'cod', 'delivery', ['address_id' => $address->id])
             ->assertCreated()
-            ->assertJsonPath('data.delivery_fee', 35000)
-            ->assertJsonPath('data.total', 180000)
+            ->assertJsonPath('data.delivery_fee', 350)
+            ->assertJsonPath('data.total', 1800)
             ->assertJsonPath('data.delivery_address.city', $address->city)
             // The delivery address phone is the contact number when no contact_phone is given.
             ->assertJsonPath('data.customer.phone', $address->phone);
@@ -146,12 +146,12 @@ class PlaceOrderTest extends TestCase
 
     public function test_minimum_order_amount_is_enforced(): void
     {
-        $product = Product::factory()->price(90000)->create();
+        $product = Product::factory()->price(900)->create();
 
         $this->placeOrder($this->customer(), [[$product, 1]])
             ->assertUnprocessable()
             ->assertJsonPath('code', 'below_minimum_order')
-            ->assertJsonPath('details.minimum_order_amount', 100000);
+            ->assertJsonPath('details.minimum_order_amount', 1000);
     }
 
     public function test_idempotency_key_prevents_duplicate_orders(): void

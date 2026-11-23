@@ -8,7 +8,7 @@ import { Badge, Button, Card, EmptyState, ErrorState, FilterSelect, IconButton, 
 import { PageHeader } from '../layout'
 import { ApiError, errorMessage } from '../lib/api'
 import { coupons } from '../lib/endpoints'
-import { centsToRupees, count, date, money, rupeesToCents, TIMEZONE } from '../lib/format'
+import { centsToDollars, count, date, money, dollarsToCents, TIMEZONE } from '../lib/format'
 import { useSearchBox, useUrlFilters } from '../lib/hooks'
 import type { Coupon, CouponInput } from '../lib/types'
 
@@ -189,9 +189,9 @@ function CouponModal({ coupon, onClose }: { coupon: Coupon | 'new' | null; onClo
     description: existing?.description ?? '',
     discount_type: existing?.discount_type ?? ('percentage' as Coupon['discount_type']),
     percentage: existing?.percentage ? String(existing.percentage) : '',
-    amount: centsToRupees(existing?.amount),
-    max_discount_amount: centsToRupees(existing?.max_discount_amount),
-    min_order_amount: centsToRupees(existing?.min_order_amount),
+    amount: centsToDollars(existing?.amount),
+    max_discount_amount: centsToDollars(existing?.max_discount_amount),
+    min_order_amount: centsToDollars(existing?.min_order_amount),
     usage_limit: existing?.usage_limit ? String(existing.usage_limit) : '',
     usage_limit_per_user: existing?.usage_limit_per_user ? String(existing.usage_limit_per_user) : '',
     starts_at: toLocalInput(existing?.starts_at ?? null),
@@ -225,12 +225,12 @@ function CouponModal({ coupon, onClose }: { coupon: Coupon | 'new' | null; onClo
     const code = form.code.trim().toUpperCase()
     if (!/^[A-Z0-9_-]{3,40}$/.test(code)) found.code = 'Use 3 to 40 letters, numbers, dashes or underscores.'
     const pct = Number(form.percentage)
-    const amount = rupeesToCents(form.amount)
+    const amount = dollarsToCents(form.amount)
     if (form.discount_type === 'percentage' && !(Number.isInteger(pct) && pct >= 1 && pct <= 100)) found.percentage = 'Enter a whole percentage from 1 to 100.'
     if (form.discount_type === 'fixed' && !(amount && amount > 0)) found.amount = 'Enter an amount in rupees.'
     const rupees = (k: 'max_discount_amount' | 'min_order_amount') => {
       if (!form[k].trim()) return null
-      const v = rupeesToCents(form[k])
+      const v = dollarsToCents(form[k])
       if (v === null) found[k] = 'Enter an amount in rupees.'
       return v
     }
@@ -301,12 +301,12 @@ function CouponModal({ coupon, onClose }: { coupon: Coupon | 'new' | null; onClo
           {form.discount_type === 'percentage' ? (
             <>
               <TextField label="Percentage off" inputMode="numeric" value={form.percentage} onChange={(e) => update('percentage', e.target.value)} error={errors.percentage} placeholder="10" />
-              <TextField label="Largest discount" optional prefix="Rs" inputMode="decimal" value={form.max_discount_amount} onChange={(e) => update('max_discount_amount', e.target.value)} error={errors.max_discount_amount} />
+              <TextField label="Largest discount" optional prefix="$" inputMode="decimal" value={form.max_discount_amount} onChange={(e) => update('max_discount_amount', e.target.value)} error={errors.max_discount_amount} />
             </>
           ) : (
-            <TextField label="Amount off" prefix="Rs" inputMode="decimal" value={form.amount} onChange={(e) => update('amount', e.target.value)} error={errors.amount} placeholder="300" />
+            <TextField label="Amount off" prefix="$" inputMode="decimal" value={form.amount} onChange={(e) => update('amount', e.target.value)} error={errors.amount} placeholder="3" />
           )}
-          <TextField label="Minimum order" optional prefix="Rs" inputMode="decimal" value={form.min_order_amount} onChange={(e) => update('min_order_amount', e.target.value)} error={errors.min_order_amount} />
+          <TextField label="Minimum order" optional prefix="$" inputMode="decimal" value={form.min_order_amount} onChange={(e) => update('min_order_amount', e.target.value)} error={errors.min_order_amount} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField label="Total uses" optional inputMode="numeric" value={form.usage_limit} onChange={(e) => update('usage_limit', e.target.value)} error={errors.usage_limit} hint="Blank means unlimited." />

@@ -1,6 +1,6 @@
 import type { OpeningStatus, SpecialDate } from '../../services/api/types'
 
-/** Admin API types. Money is integer cents of LKR; dates are ISO-8601 strings. */
+/** Admin API types. Money is integer cents of USD; dates are ISO-8601 strings. */
 
 export type Cents = number
 
@@ -24,7 +24,7 @@ export interface AdminUser {
 
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'rejected'
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'cancelled' | 'charged_back' | 'refund_required'
-export type PaymentMethod = 'payhere' | 'cod'
+export type PaymentMethod = 'stripe' | 'payhere' | 'cod'
 export type Fulfilment = 'delivery' | 'pickup'
 
 // ── Dashboard & reports ────────────────────────────────────────────────────────
@@ -414,6 +414,7 @@ export interface Settings {
   pickup_enabled: boolean
   cod_enabled: boolean
   payhere_enabled: boolean
+  stripe_enabled: boolean
   delivery_fee: Cents
   free_delivery_threshold: Cents | null
   minimum_order_amount: Cents
@@ -469,5 +470,5 @@ export interface SpecialDateInput {
 
 export interface SettingsResponse {
   data: Settings
-  meta: { integrations: { cloudinary: boolean; payhere: boolean; payhere_sandbox: boolean; currency: string; timezone: string } }
+  meta: { integrations: { cloudinary: boolean; payhere: boolean; payhere_sandbox: boolean; stripe: boolean; stripe_webhook: boolean; stripe_test_mode: boolean; currency: string; timezone: string } }
 }

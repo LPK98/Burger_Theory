@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { AuthDialog } from './components/AuthDialog'
 import { CartDrawer } from './components/CartDrawer'
 import { CartToast } from './components/CartToast'
+import { CheckoutReturnDialog } from './components/CheckoutReturnDialog'
 import { Footer } from './components/Footer'
 import { HoursDialog } from './components/HoursDialog'
 import { Navbar } from './components/Navbar'
@@ -52,6 +53,7 @@ export default function App() {
           <CartDrawer />
           <AuthDialog />
           <HoursDialog />
+          <CheckoutReturnDialog />
           <CartToast />
           <div className="grain" aria-hidden="true" />
         </SmoothScrollProvider>

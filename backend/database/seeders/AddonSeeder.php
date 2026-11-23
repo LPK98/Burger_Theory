@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  */
 class AddonSeeder extends Seeder
 {
-    /** slug => [name, kind, price in LKR, description] */
+    /** slug => [name, kind, price in USD cents, description] */
     private const ADDONS = [
         'extra-cheddar' => ['Extra aged cheddar', AddonKind::Topping, 150, 'Another slice of aged cheddar.'],
         'smoked-bacon' => ['Smoked bacon', AddonKind::Topping, 350, 'Two rashers of crisp smoked streaky bacon.'],
@@ -66,11 +66,11 @@ class AddonSeeder extends Seeder
     {
         $addons = [];
         $position = 0;
-        foreach (self::ADDONS as $slug => [$name, $kind, $rupees, $description]) {
+        foreach (self::ADDONS as $slug => [$name, $kind, $cents, $description]) {
             $addons[$slug] = Addon::withTrashed()->firstOrCreate(['slug' => $slug], [
                 'name' => $name,
                 'kind' => $kind,
-                'price' => $rupees * 100,
+                'price' => $cents,
                 'description' => $description,
                 'is_available' => true,
                 'sort_order' => ++$position,

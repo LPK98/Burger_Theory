@@ -15,7 +15,7 @@ Artisan::command('orders:expire-unpaid {--minutes= : Override ORDER_UNPAID_EXPIR
     $minutes = $option !== null && $option !== '' ? max(0, (int) $option) : (int) config('restaurant.orders.unpaid_expiry_minutes');
     $count = $workflow->expireUnpaidOnlineOrders($minutes);
     $this->info("Cancelled {$count} unpaid online order(s) older than {$minutes} minutes.");
-})->purpose('Cancel PayHere orders whose payment never completed and release their stock');
+})->purpose('Cancel online-payment (PayHere / Stripe) orders whose payment never completed and release their stock');
 
 Artisan::command('carts:prune-guests', function () {
     $days = (int) config('restaurant.cart.guest_ttl_days');

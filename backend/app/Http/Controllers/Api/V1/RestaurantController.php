@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\Payment\PayHere\PayHereConfig;
+use App\Services\Payment\Stripe\StripeConfig;
 use App\Services\Settings\RestaurantSettings;
 use Illuminate\Http\JsonResponse;
 
@@ -19,7 +20,7 @@ class RestaurantController extends Controller
      *
      * @unauthenticated
      */
-    public function show(RestaurantSettings $settings, PayHereConfig $payHere): JsonResponse
+    public function show(RestaurantSettings $settings, PayHereConfig $payHere, StripeConfig $stripe): JsonResponse
     {
         $s = $settings->all();
 
@@ -35,6 +36,7 @@ class RestaurantController extends Controller
                 $s['pickup_enabled'] ? 'pickup' : null,
             ])),
             'payment_methods' => array_values(array_filter([
+                $s['stripe_enabled'] && $stripe->isConfigured() ? 'stripe' : null,
                 $s['payhere_enabled'] && $payHere->isConfigured() ? 'payhere' : null,
                 $s['cod_enabled'] ? 'cod' : null,
             ])),
