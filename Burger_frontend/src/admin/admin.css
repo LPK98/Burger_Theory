@@ -1,0 +1,162 @@
+/* Only the admin portal's own files generate classes here (not the customer site's). */
+@import 'tailwindcss' source(none);
+@source '.';
+
+/* ─────────────────────────────────────────────────────────────
+   Burger Theory admin portal tokens.
+   Separate from the customer site's index.css (that page never loads this file).
+   ───────────────────────────────────────────────────────────── */
+@theme {
+  --color-pitch: #0a0908;
+  --color-char: #141210;
+  --color-smoke: #1c1917;
+  --color-smoke-2: #24201d;
+  --color-rule: rgb(255 240 228 / 0.08);
+  --color-rule-strong: rgb(255 240 228 / 0.15);
+  --color-bone: #f6f2ec;
+  --color-grey: #a69f97;
+  --color-dim: #746d66;
+
+  /* Deep orange: validated as a chart series on the char surface (OKLCH L 0.66, ≥3:1). */
+  --color-ember: #ea5f17;
+  --color-ember-hot: #ff7433;
+  --color-ember-ink: #170a03;
+
+  /* Status palette (good / warning / serious / critical) plus an in-progress blue. */
+  --color-good: #2fb344;
+  --color-warn: #fab219;
+  --color-serious: #ec835a;
+  --color-bad: #e5534b;
+  --color-info: #5b9cf0;
+
+  --font-sans: 'Anybody Variable', system-ui, sans-serif;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-pitch);
+    color: var(--color-bone);
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    font-variation-settings: 'wdth' 100;
+    min-height: 100dvh;
+    background:
+      radial-gradient(60rem 40rem at 12% -10%, rgb(234 95 23 / 0.09), transparent 60%),
+      radial-gradient(50rem 30rem at 110% 0%, rgb(255 240 228 / 0.03), transparent 60%),
+      var(--color-pitch);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: var(--color-ember);
+    color: var(--color-ember-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ember);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role='button'],
+  label[for],
+  select {
+    cursor: pointer;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+  }
+
+  /* Number inputs: no spinners; values are typed. */
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type='date']::-webkit-calendar-picker-indicator,
+  input[type='time']::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+  }
+}
+
+@layer components {
+  /* Condensed, heavy title face (the brand's display cut of Anybody). */
+  .title {
+    font-variation-settings: 'wdth' 68;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+  }
+
+  /* Dark glass surface. */
+  .glass {
+    background: linear-gradient(180deg, rgb(32 28 25 / 0.72), rgb(22 20 18 / 0.72));
+    border: 1px solid var(--color-rule);
+    backdrop-filter: blur(14px) saturate(120%);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Kitchen ticket: a perforated top edge, cut from the card's own surface. */
+  .ticket {
+    --notch: 6px;
+    mask:
+      radial-gradient(circle at 50% 0, transparent calc(var(--notch) - 0.5px), #000 var(--notch)) top / calc(var(--notch) * 3) 100%
+        repeat-x;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-rule-strong) transparent;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

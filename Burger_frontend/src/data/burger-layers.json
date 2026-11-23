@@ -1,0 +1,77 @@
+{
+  "canvas": 1000,
+  "note": "Bottom to top. bbox is [x0, y0, x1, y1] in 0-1000 canvas units. `npm run burger:check` measures the photo PNGs, fills their bbox and sets `art`. `npm run art` regenerates the illustrated fallbacks.",
+  "art": "illustration",
+  "layers": [
+    {
+      "id": "bottom-bun",
+      "label": "Toasted brioche heel",
+      "src": "/images/burger/bottom-bun.png",
+      "bbox": null,
+      "fallback": {
+        "src": "/images/burger/bottom-bun.svg",
+        "bbox": [135, 482, 865, 739]
+      }
+    },
+    {
+      "id": "sauce",
+      "label": "Theory sauce",
+      "src": "/images/burger/sauce.png",
+      "bbox": null,
+      "fallback": {
+        "src": "/images/burger/sauce.svg",
+        "bbox": [187, 486, 833, 670]
+      }
+    },
+    {
+      "id": "patty",
+      "label": "Smashed beef patty",
+      "src": "/images/burger/patty.png",
+      "bbox": null,
+      "fallback": {
+        "src": "/images/burger/patty.svg",
+        "bbox": [123, 410, 884, 655]
+      }
+    },
+    {
+      "id": "cheese",
+      "label": "Aged cheddar",
+      "src": "/images/burger/cheese.png",
+      "bbox": null,
+      "fallback": {
+        "src": "/images/burger/cheese.svg",
+        "bbox": [120, 411, 888, 661]
+      }
+    },
+    {
+      "id": "tomato",
+      "label": "Vine tomato",
+      "src": "/images/burger/tomato.png",
+      "bbox": null,
+      "fallback": {
+        "src": "/images/burger/tomato.svg",
+        "bbox": [134, 394, 862, 588]
+      }
+    },
+    {
+      "id": "lettuce",
+      "label": "Butter lettuce",
+      "src": "/images/burger/lettuce.png",
+      "bbox": null,
+      "fallback": {
+        "src": "/images/burger/lettuce.svg",
+        "bbox": [112, 365, 883, 594]
+      }
+    },
+    {
+      "id": "top-bun",
+      "label": "Sesame brioche crown",
+      "src": "/images/burger/top-bun.png",
+      "bbox": null,
+      "fallback": {
+        "src": "/images/burger/top-bun.svg",
+        "bbox": [140, 261, 860, 556]
+      }
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+@import 'tailwindcss';
+@import './styles/animations.css';
+
+/* The admin portal (src/admin) has its own stylesheet; keep its classes out of this one. */
+@source not './admin';
+
+/* ─────────────────────────────────────────────────────────────
+   Design tokens
+   ───────────────────────────────────────────────────────────── */
+@theme {
+  --color-ink: #090909;
+  --color-char: #151515;
+  --color-char-2: #1c1a18;
+  --color-line: #2c2825;
+  --color-ember: #f07832;
+  --color-ember-hot: #ff8f4d;
+  --color-ember-deep: #b8531a;
+  --color-cream: #f4e9d8;
+  --color-bone: #fbf7f1;
+  --color-ash: #a8a097;
+
+  --font-display: 'Anybody Variable', 'Arial Narrow', Impact, sans-serif;
+  --font-ui: 'Anybody Variable', system-ui, sans-serif;
+  --font-serif: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
+
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+  --breakpoint-xs: 25rem;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Base
+   ───────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    background: var(--color-ink);
+    color: var(--color-bone);
+    color-scheme: dark;
+    scrollbar-gutter: stable;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    font-optical-sizing: auto;
+    overflow-x: clip;
+  }
+
+  html.scroll-locked {
+    overflow: hidden;
+  }
+
+  ::selection {
+    background: var(--color-ember);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ember);
+    outline-offset: 3px;
+  }
+
+  img,
+  svg {
+    max-width: none;
+  }
+
+  img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Utilities
+   ───────────────────────────────────────────────────────────── */
+
+/* Page gutter + max line of the layout grid. */
+@utility shell {
+  width: 100%;
+  max-width: 92rem;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 3.5rem);
+}
+
+/* The house display face: Anybody, condensed and heavy, set in caps. */
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 880;
+  font-stretch: 58%;
+  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: -0.004em;
+  font-kerning: normal;
+}
+
+/* The display face for small sizes: wider and a touch lighter so letters don't clot. */
+@utility display-sm {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 76%;
+  text-transform: uppercase;
+  line-height: 1;
+  letter-spacing: 0.012em;
+}
+
+/* UI text: buttons, navigation, prices, small labels. */
+@utility ui {
+  font-family: var(--font-ui);
+  font-stretch: 96%;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* One masked line of a headline; the inner span slides up into view. */
+@utility line-mask {
+  display: block;
+  overflow: clip;
+  overflow-clip-margin: 0.08em;
+  padding-bottom: 0.02em;
+}
+
+@utility line-inner {
+  display: block;
+  will-change: transform;
+}
+
+@utility hairline {
+  border-color: var(--color-line);
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}

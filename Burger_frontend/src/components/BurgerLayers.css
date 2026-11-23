@@ -1,0 +1,47 @@
+/* One wrapper per ingredient; GSAP owns its transform. */
+.burger-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.burger-layer > img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+}
+
+/*
+  Light sweep. The wrapper is masked to the ingredient's silhouette, so the highlight only
+  ever lands on the food. Bands rest one band-width to the left of the canvas (invisible);
+  the scene moves them across with xPercent 0 → 200.
+*/
+.burger-sheen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+}
+
+.burger-sheen-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -100%;
+  width: 100%;
+  background: linear-gradient(
+    104deg,
+    rgba(255, 242, 222, 0) 34%,
+    rgba(255, 242, 222, 0.16) 44%,
+    rgba(255, 246, 232, 0.5) 50%,
+    rgba(255, 242, 222, 0.16) 56%,
+    rgba(255, 242, 222, 0) 66%
+  );
+  mix-blend-mode: soft-light;
+}

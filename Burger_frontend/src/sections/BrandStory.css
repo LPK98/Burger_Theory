@@ -1,0 +1,53 @@
+/* Diagram-style notes pinned onto the story photograph. The wrapper is never animated,
+   so it can be centred with `translate`; GSAP only touches the dot, line and label. */
+.note {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  translate: 0 -50%;
+  pointer-events: none;
+}
+
+.note[data-side='left'] {
+  flex-direction: row-reverse;
+}
+
+.note-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-ember);
+  box-shadow: 0 0 0 5px rgba(240, 120, 50, 0.28);
+}
+
+.note-line {
+  flex: none;
+  width: clamp(1.75rem, 4vw, 3.25rem);
+  height: 1px;
+  background: rgba(244, 233, 216, 0.85);
+  transform-origin: 0 50%;
+}
+
+.note[data-side='left'] .note-line {
+  transform-origin: 100% 50%;
+}
+
+.note-label {
+  flex: none;
+  max-width: 13rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid rgba(244, 233, 216, 0.16);
+  background: rgba(9, 9, 9, 0.8);
+  color: var(--color-cream);
+  font-size: 0.8125rem;
+  line-height: 1.25;
+}
+
+@media (max-width: 639.98px) {
+  .note-label {
+    max-width: 8.5rem;
+    font-size: 0.75rem;
+  }
+}

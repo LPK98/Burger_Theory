@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Burger asset inspector | Bun Theory</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      Development tool (not part of the production build).
+      With `npm run dev` running, open http://localhost:5173/asset-preview.html to check the seven
+      exploded-burger layers before the site uses them: missing files, canvas size, transparency,
+      assembled alignment and the exploded pose. It applies the same rules as `npm run burger:check`
+      (scripts/burger-rules.mjs), and it can inspect PNGs straight from your disk ("Local files")
+      before you copy them into public/images/burger/.
+    -->
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #090909;
+        --char: #151515;
+        --char-2: #1c1a18;
+        --line: #2c2825;
+        --ember: #f07832;
+        --cream: #f4e9d8;
+        --ash: #a8a097;
+        --ok: #52d273;
+        --warn: #ffc94d;
+        --error: #ff5c5c;
+        --missing: #ff5c5c;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--ink); color: var(--cream); font: 14px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+      code, pre, .mono { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 12.5px; }
+      button, input, select { font: inherit; color: inherit; }
+      h1, h2 { margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+
+      .top { display: grid; gap: 20px; padding: 28px clamp(16px, 3vw, 40px) 20px; border-bottom: 1px solid var(--line); }
+      @media (min-width: 1000px) { .top { grid-template-columns: 1fr minmax(360px, 520px); align-items: end; } }
+      .eyebrow { margin: 0 0 6px; color: var(--ember); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+      h1 { font-size: clamp(24px, 3vw, 34px); }
+      .lede { margin: 8px 0 0; max-width: 62ch; color: var(--ash); }
+
+      .summary { display: grid; gap: 8px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--char); }
+      .summary[data-tone='error'] { border-color: color-mix(in srgb, var(--error) 55%, var(--line)); }
+      .summary[data-tone='warn'] { border-color: color-mix(in srgb, var(--warn) 55%, var(--line)); }
+      .summary[data-tone='ok'] { border-color: color-mix(in srgb, var(--ok) 55%, var(--line)); }
+      .summary p { margin: 0; }
+      .summary .k { color: var(--ash); }
+      .summary .msg { color: var(--cream); }
+
+      .toolbar { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: 10px 26px; padding: 12px clamp(16px, 3vw, 40px); background: color-mix(in srgb, var(--ink) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+      .group { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+      .group-label { color: var(--ash); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; margin-right: 2px; }
+      .group label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; }
+      input[type='radio'], input[type='checkbox'] { accent-color: var(--ember); }
+      .btn, .file-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 7px; background: var(--char-2); cursor: pointer; }
+      .btn:hover, .file-btn:hover { border-color: var(--ember); }
+      .file-btn input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+      .file-btn:focus-within, .btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+
+      main { display: grid; gap: 0; }
+      .panel { padding: 28px clamp(16px, 3vw, 40px) 36px; border-bottom: 1px solid var(--line); }
+      .panel-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-bottom: 18px; }
+      .panel-head .num { color: var(--ember); font-weight: 700; font-size: 13px; }
+      .panel-head h2 { font-size: 20px; }
+      .panel-head p { flex-basis: 100%; margin: 0; max-width: 80ch; color: var(--ash); }
+      .split { display: grid; gap: 24px; align-items: start; }
+      @media (min-width: 980px) { .split { grid-template-columns: minmax(0, 600px) minmax(300px, 1fr); } }
+
+      /* Stages and backgrounds */
+      [data-bg='checker'] { background-color: #fafafa; background-image: conic-gradient(#d6d6d6 25%, #fafafa 0 50%, #d6d6d6 0 75%, #fafafa 0); background-size: 22px 22px; }
+      [data-bg='scene'] { background: radial-gradient(circle at 50% 45%, #2a1d14, #151515 70%); }
+      [data-bg='dark'] { background: var(--ink); }
+      [data-bg='light'] { background: #f3efe8; }
+      /* isolation keeps the overlays' z-index inside the stage (under the sticky toolbar). */
+      .stage, .card-stage { isolation: isolate; }
+      .stage { position: relative; width: 100%; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+      .canvas { position: relative; aspect-ratio: 1; width: 100%; }
+      .stage.tall .viewport { position: relative; aspect-ratio: 1 / 1.42; width: 100%; }
+      .stage.tall .canvas { position: absolute; left: 0; right: 0; top: 19%; }
+      .layer { position: absolute; inset: 0; transition: opacity 0.15s; }
+      .layer img { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; }
+      .canvas[data-focus] .layer:not([data-focused]) { opacity: 0.12; }
+      .outline { position: absolute; outline: 1.5px dashed var(--c); outline-offset: -1px; pointer-events: none; }
+      .outline span { position: absolute; left: -1px; bottom: 100%; padding: 1px 5px; background: var(--c); color: #111; font: 600 11px/1.4 system-ui, sans-serif; white-space: nowrap; display: none; }
+      .canvas[data-focus] .layer[data-focused] .outline span, .card .outline span { display: block; }
+      .hide-outlines .outline { display: none; }
+      .canvas[data-focus] .layer[data-focused] .outline { display: block; }
+      .ghost { position: absolute; inset: 0; opacity: 0.35; pointer-events: none; z-index: 30; filter: saturate(0.4); }
+      .ghost img { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .overlay { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 40; pointer-events: none; overflow: visible; }
+      .empty { position: absolute; inset: 0; z-index: 50; display: grid; place-items: center; padding: 24px; text-align: center; color: #333; font-weight: 600; }
+      [data-bg='dark'] .empty, [data-bg='scene'] .empty { color: var(--cream); }
+      .empty p { max-width: 34ch; margin: 0; padding: 14px 16px; border-radius: 8px; background: color-mix(in srgb, var(--char) 90%, transparent); color: var(--cream); font-weight: 500; }
+
+      /* Layer list */
+      .layer-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+      .layer-list li { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 10px; padding: 9px 12px; border-top: 1px solid var(--line); background: var(--char); }
+      .layer-list li:first-child { border-top: 0; }
+      .layer-list li:hover, .layer-list li:focus-within { background: var(--char-2); }
+      .swatch { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+      .chip { padding: 1px 8px; border-radius: 99px; font-size: 11.5px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em; border: 1px solid currentColor; }
+      .chip[data-s='ok'] { color: var(--ok); }
+      .chip[data-s='warn'] { color: var(--warn); }
+      .chip[data-s='error'] { color: var(--error); }
+      .chip[data-s='missing'] { color: var(--missing); border-style: dashed; }
+      .issues { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+      .issues li { position: relative; padding-left: 16px; color: var(--cream); }
+      .issues li::before { position: absolute; left: 0; top: 0; font-weight: 800; }
+      .issues li[data-l='error']::before { content: '×'; color: var(--error); }
+      .issues li[data-l='warn']::before { content: '!'; color: var(--warn); }
+      .issues li[data-l='ok']::before { content: '✓'; color: var(--ok); }
+      .set-box { margin-top: 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--char); }
+      .set-box h3 { margin: 0 0 8px; font-size: 13px; color: var(--ash); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+
+      /* Explode controls */
+      .controls { display: grid; gap: 14px; }
+      .row-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+      .row-ctl input[type='range'] { width: min(320px, 60vw); accent-color: var(--ember); }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { padding: 7px 10px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }
+      th { color: var(--ash); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; border-top: 0; }
+      .offsets input { width: 68px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--ink); }
+      .offsets td:first-child { white-space: nowrap; }
+      pre { margin: 0; padding: 12px 14px; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--char); color: var(--cream); }
+      .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--char); }
+      .report td { font-size: 13px; }
+      .report td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .muted { color: var(--ash); }
+
+      /* Individual cards */
+      .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+      .card { margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--char); }
+      .card.is-missing { border-style: dashed; border-color: color-mix(in srgb, var(--missing) 60%, var(--line)); }
+      .card.is-error { border-color: color-mix(in srgb, var(--error) 60%, var(--line)); }
+      .card-stage { position: relative; aspect-ratio: 1; }
+      .card-stage img { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .axis { position: absolute; top: 0; bottom: 0; left: 50%; width: 0; border-left: 1px dashed rgba(240, 120, 50, 0.8); }
+      .card-missing { position: absolute; inset: 0; display: grid; place-content: center; gap: 4px; padding: 18px; text-align: center; background: repeating-linear-gradient(-45deg, rgba(255, 92, 92, 0.08) 0 10px, transparent 10px 20px), var(--char-2); }
+      .card-missing strong { color: var(--missing); font-size: 15px; }
+      .card figcaption { display: grid; gap: 8px; padding: 12px 14px 14px; }
+      .card-title { display: flex; align-items: center; gap: 8px; font-weight: 650; }
+      .card-title .chip { margin-left: auto; }
+      dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; font-size: 12.5px; }
+      dt { color: var(--ash); }
+      dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+      .guides { display: grid; gap: 14px; max-width: 80ch; }
+      .guides p { margin: 0; color: var(--ash); }
+      .products { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+      .products figure { margin: 0; }
+      .products .canvas { border-radius: 10px; border: 1px solid var(--line); }
+      .products img { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .products figcaption { margin-top: 6px; color: var(--ash); font-size: 12.5px; }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div>
+        <p class="eyebrow">Bun Theory · development tool</p>
+        <h1>Burger asset inspector</h1>
+        <p class="lede">
+          Checks the seven exploded-view layers before the site uses them: missing files, canvas size, transparency, assembled
+          alignment and the exploded pose. Same rules as <code>npm run burger:check</code>.
+        </p>
+      </div>
+      <div id="summary" class="summary" aria-live="polite"><p class="muted">Inspecting layers…</p></div>
+    </header>
+
+    <div class="toolbar" role="toolbar" aria-label="Inspector options">
+      <div class="group" role="radiogroup" aria-label="Source">
+        <span class="group-label">Source</span>
+        <label><input type="radio" name="source" value="photo" checked /> Photo PNGs</label>
+        <label><input type="radio" name="source" value="fallback" /> Illustrated fallback</label>
+        <label><input type="radio" name="source" value="local" /> Local files</label>
+        <label class="file-btn" title="Pick PNGs named after the layers (top-bun.png, lettuce.png…) to inspect them before copying them into the project">
+          <input type="file" id="files" accept="image/png,image/webp,image/svg+xml" multiple /> Choose files…
+        </label>
+        <button class="btn" type="button" id="reload" title="Fetch the files again (after you add or replace PNGs)">Reload</button>
+      </div>
+      <div class="group" role="radiogroup" aria-label="Background">
+        <span class="group-label">Background</span>
+        <label><input type="radio" name="bg" value="checker" checked /> Checker</label>
+        <label><input type="radio" name="bg" value="scene" /> Scene</label>
+        <label><input type="radio" name="bg" value="dark" /> Dark</label>
+        <label><input type="radio" name="bg" value="light" /> Light</label>
+      </div>
+      <div class="group" aria-label="Overlays">
+        <span class="group-label">Overlays</span>
+        <label><input type="checkbox" data-overlay="outlines" checked /> Outlines</label>
+        <label><input type="checkbox" data-overlay="guides" checked /> Centre axis</label>
+        <label title="The illustrated burger's outline: the page layout (captions, headline) is designed around it"><input type="checkbox" data-overlay="envelope" /> Layout envelope</label>
+        <label title="Overlay the illustrated burger at 35% to compare framing"><input type="checkbox" data-overlay="ghost" /> Illustration ghost</label>
+      </div>
+    </div>
+
+    <main>
+      <section class="panel" aria-labelledby="h-assembled">
+        <div class="panel-head">
+          <span class="num">01</span>
+          <h2 id="h-assembled">Assembled</h2>
+          <p>All seven layers stacked untouched. They must read as one burger. Hover (or focus) a layer in the list to isolate it; untick it to hide it.</p>
+        </div>
+        <div class="split">
+          <div class="stage" id="assembled"></div>
+          <div>
+            <ol class="layer-list" id="layer-list" aria-label="Layers, top to bottom"></ol>
+            <div class="set-box">
+              <h3>Whole set</h3>
+              <ul class="issues" id="set-issues"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-exploded">
+        <div class="panel-head">
+          <span class="num">02</span>
+          <h2 id="h-exploded">Exploded</h2>
+          <p>
+            The pose the scroll scene holds, from <code>EXPLODE</code> in <code>src/data/burger.ts</code>. Offsets are % of the canvas;
+            stretch is the cheddar's melt pull. Tune them here, then copy the snippet back into the file.
+          </p>
+        </div>
+        <div class="split">
+          <div class="stage tall" id="exploded"></div>
+          <div class="controls">
+            <div class="row-ctl">
+              <label for="progress">Explode</label>
+              <input type="range" id="progress" min="0" max="1000" value="1000" />
+              <output id="progress-out" for="progress" class="mono">100%</output>
+              <button class="btn" type="button" id="play">Play</button>
+            </div>
+            <div class="row-ctl" role="radiogroup" aria-label="Layout">
+              <span class="group-label">Layout</span>
+              <label><input type="radio" name="layout" value="desktop" checked /> Desktop (≥ 1024 px)</label>
+              <label><input type="radio" name="layout" value="compact" /> Compact</label>
+            </div>
+            <div class="table-wrap">
+              <table class="offsets">
+                <thead>
+                  <tr><th>Layer</th><th>y %</th><th>x %</th><th>rotate °</th><th>stretch</th></tr>
+                </thead>
+                <tbody id="offsets"></tbody>
+              </table>
+            </div>
+            <div class="row-ctl">
+              <button class="btn" type="button" id="copy">Copy snippet</button>
+              <button class="btn" type="button" id="reset">Reset to file</button>
+            </div>
+            <pre id="snippet" aria-label="EXPLODE snippet"></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-report">
+        <div class="panel-head">
+          <span class="num">03</span>
+          <h2 id="h-report">Alignment report</h2>
+          <p>Measured from each file's alpha channel. Outline and offset are in pixels of the layer's own canvas; every layer should share one vertical axis.</p>
+        </div>
+        <div class="table-wrap">
+          <table class="report">
+            <thead>
+              <tr><th>Layer</th><th>Status</th><th>File</th><th>Canvas</th><th>Outline (x0 y0 x1 y1)</th><th>Width</th><th>Off axis</th><th>Notes</th></tr>
+            </thead>
+            <tbody id="report"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-singles">
+        <div class="panel-head">
+          <span class="num">04</span>
+          <h2 id="h-singles">Individual layers</h2>
+          <p>Each file on its own, full canvas, with its measured outline and the centre axis.</p>
+        </div>
+        <div class="grid" id="singles"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-guides">
+        <div class="panel-head">
+          <span class="num">05</span>
+          <h2 id="h-guides">Generation guides</h2>
+          <p>
+            The illustrated layers already sit at the exact assembled positions. Export them at 1600 × 1600 as structure guides for
+            image-to-image or ControlNet, as inpainting masks, or as a template to place cut-outs on (see BURGER-PROMPTS.md).
+          </p>
+        </div>
+        <div class="guides">
+          <div class="row-ctl">
+            <button class="btn" type="button" data-export="guide">Download guide layers (7 PNG)</button>
+            <button class="btn" type="button" data-export="mask">Download silhouette masks (7 PNG)</button>
+            <button class="btn" type="button" data-export="assembled">Download assembled reference</button>
+          </div>
+          <p>Your browser may ask once to allow multiple downloads.</p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-products">
+        <div class="panel-head">
+          <span class="num">06</span>
+          <h2 id="h-products">Product renders</h2>
+          <p>Menu composites in <code>public/images/products/</code> (still the generated illustrations).</p>
+        </div>
+        <div class="products" id="products"></div>
+      </section>
+    </main>
+
+    <script type="module">
+      import manifest from '/src/data/burger-layers.json'
+      import { EXPLODE, STRETCH_REST } from '/src/data/burger.ts'
+      import { checkLayer, checkSet, measureAlpha, pngInfo, TARGET_SIZE, unionBox } from '/scripts/burger-rules.mjs'
+
+      const LAYERS = manifest.layers // bottom → top
+      const TOP_DOWN = [...LAYERS].reverse()
+      const COLORS = { 'bottom-bun': '#e8a33d', sauce: '#ff7a59', patty: '#c77dff', cheese: '#ffd60a', tomato: '#ff4d6d', lettuce: '#52d273', 'top-bun': '#4cc9f0' }
+      const ENVELOPE = unionBox(LAYERS.map((l) => l.fallback.bbox))
+
+      const state = {
+        source: 'photo',
+        bg: 'checker',
+        overlays: { outlines: true, guides: true, envelope: false, ghost: false },
+        hidden: new Set(),
+        focus: null,
+        layout: 'desktop',
+        offsets: structuredClone(EXPLODE),
+        progress: 1,
+        local: new Map(),
+        ignored: [],
+      }
+      /** Inspection results per source: Map(id → result). */
+      const results = { photo: null, fallback: null, local: null }
+
+      /* ── helpers ── */
+      const $ = (id) => document.getElementById(id)
+      function h(tag, attrs = {}, ...children) {
+        const el = document.createElement(tag)
+        for (const [k, v] of Object.entries(attrs)) {
+          if (v == null || v === false) continue
+          if (k === 'class') el.className = v
+          else if (k === 'style') el.style.cssText = v
+          else if (k.startsWith('on')) el.addEventListener(k.slice(2), v)
+          else el.setAttribute(k, v === true ? '' : v)
+        }
+        el.append(...children.flat().filter((c) => c != null && c !== false))
+        return el
+      }
+      const loadImage = (src) =>
+        new Promise((resolve, reject) => {
+          const img = new Image()
+          img.onload = () => resolve(img)
+          img.onerror = () => reject(new Error(`cannot decode ${src}`))
+          img.src = src
+        })
+      const kb = (bytes) => (bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`)
+      const statusOf = (r) => (!r || r.missing ? 'missing' : r.issues.some((i) => i.level === 'error') ? 'error' : r.issues.length ? 'warn' : 'ok')
+      const chip = (s) => h('span', { class: 'chip', 'data-s': s }, s)
+      const swatch = (id) => h('span', { class: 'swatch', style: `--c:${COLORS[id]}` })
+      const issueList = (issues) => h('ul', { class: 'issues' }, issues.map((i) => h('li', { 'data-l': i.level }, i.text)))
+      const fileName = (path) => String(path).split('/').pop()
+
+      /* ── inspection ── */
+      async function inspectBlob(id, blob, { path, vector }) {
+        const bytes = new Uint8Array(await blob.arrayBuffer())
+        const png = vector ? null : pngInfo(bytes)
+        const result = {
+          id,
+          path,
+          bytes: blob.size,
+          format: vector ? 'svg' : png ? 'png' : (blob.type.split('/')[1] ?? 'unknown').replace('jpeg', 'jpg'),
+          url: URL.createObjectURL(blob),
+          issues: [],
+        }
+        if (!vector && !png && /\.png$/i.test(path)) {
+          result.issues.push({ level: 'error', text: 'Not a PNG file.' })
+          return result
+        }
+        let img
+        try {
+          img = await loadImage(result.url)
+        } catch {
+          result.issues.push({ level: 'error', text: 'The browser can’t decode this file.' })
+          return result
+        }
+        result.width = png?.width ?? img.naturalWidth
+        result.height = png?.height ?? img.naturalHeight
+        result.hasAlpha = vector ? true : png ? png.hasAlpha : undefined
+        result.interlaced = png?.interlaced ?? false
+        // Vectors are measured at the delivery size; rasters at their own size.
+        const w = vector ? TARGET_SIZE : result.width
+        const ht = vector ? TARGET_SIZE : result.height
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = ht
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })
+        ctx.drawImage(img, 0, 0, w, ht)
+        result.measure = measureAlpha(ctx.getImageData(0, 0, w, ht).data, w, ht, 4, 3)
+        result.issues = checkLayer({ id, format: result.format, width: result.width, height: result.height, hasAlpha: result.hasAlpha, interlaced: result.interlaced, measure: result.measure, vector })
+        return result
+      }
+
+      async function inspectUrl(id, path, vector) {
+        try {
+          const res = await fetch(path, { cache: 'no-store' })
+          const type = res.headers.get('content-type') ?? ''
+          if (!res.ok || !type.startsWith('image/')) return { id, path, missing: true, issues: [] }
+          return await inspectBlob(id, await res.blob(), { path, vector })
+        } catch {
+          return { id, path, missing: true, issues: [] }
+        }
+      }
+
+      async function load(source) {
+        results[source]?.forEach((r) => r.url && URL.revokeObjectURL(r.url))
+        let list
+        if (source === 'photo') list = await Promise.all(LAYERS.map((l) => inspectUrl(l.id, l.src, false)))
+        else if (source === 'fallback') list = await Promise.all(LAYERS.map((l) => inspectUrl(l.id, l.fallback.src, true)))
+        else {
+          list = await Promise.all(
+            LAYERS.map((l) => {
+              const file = state.local.get(l.id)
+              return file ? inspectBlob(l.id, file, { path: file.name, vector: file.type === 'image/svg+xml' }) : { id: l.id, path: `${l.id}.png`, missing: true, issues: [] }
+            }),
+          )
+        }
+        results[source] = new Map(list.map((r) => [r.id, r]))
+      }
+
+      function setIssues(map) {
+        const present = [...map.values()].filter((r) => !r.missing && r.width)
+        const failed = (r) => r.issues.some((i) => i.level === 'error')
+        return checkSet(present.map((r) => ({ id: r.id, width: r.width, height: r.height, bbox: failed(r) ? null : (r.measure?.bbox ?? null) })))
+      }
+
+      /* ── stages ── */
+      function overlaySvg() {
+        const parts = []
+        if (state.overlays.guides) {
+          parts.push('<line x1="500" y1="0" x2="500" y2="1000" stroke="#f07832" stroke-width="1.6" stroke-dasharray="7 7" vector-effect="non-scaling-stroke"/>')
+        }
+        if (state.overlays.envelope && ENVELOPE) {
+          const [x0, y0, x1, y1] = ENVELOPE
+          parts.push(
+            `<rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}" fill="none" stroke="#4cc9f0" stroke-width="1.4" stroke-dasharray="3 5" vector-effect="non-scaling-stroke"/>`,
+            `<text x="${x0}" y="${y0 - 10}" fill="#4cc9f0" font-size="22" font-family="system-ui,sans-serif" font-weight="600">layout envelope</text>`,
+          )
+        }
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+        svg.setAttribute('class', 'overlay')
+        svg.setAttribute('viewBox', '0 0 1000 1000')
+        svg.setAttribute('aria-hidden', 'true')
+        svg.innerHTML = parts.join('')
+        return svg
+      }
+
+      function buildCanvas(map, { exploded = false } = {}) {
+        const canvas = h('div', { class: `canvas${state.overlays.outlines ? '' : ' hide-outlines'}` })
+        LAYERS.forEach((layer, i) => {
+          const r = map.get(layer.id)
+          const bbox = r?.measure?.bbox
+          const node = h('div', { class: 'layer', 'data-id': layer.id, style: `z-index:${i + 1}` })
+          if (bbox) node.style.transformOrigin = `${(bbox[0] + bbox[2]) / 20}% ${(bbox[1] + bbox[3]) / 20}%`
+          if (r?.url && !r.missing) node.append(h('img', { src: r.url, alt: '', draggable: 'false' }))
+          if (bbox) {
+            const [x0, y0, x1, y1] = bbox
+            node.append(
+              h('div', { class: 'outline', style: `--c:${COLORS[layer.id]};left:${x0 / 10}%;top:${y0 / 10}%;width:${(x1 - x0) / 10}%;height:${(y1 - y0) / 10}%` }, h('span', {}, layer.id)),
+            )
+          }
+          node.hidden = state.hidden.has(layer.id)
+          canvas.append(node)
+        })
+        if (!exploded && state.overlays.ghost && state.source !== 'fallback') {
+          canvas.append(h('div', { class: 'ghost' }, LAYERS.map((l) => h('img', { src: l.fallback.src, alt: '' }))))
+        }
+        canvas.append(overlaySvg())
+        const present = [...map.values()].filter((r) => !r.missing).length
+        if (!present) {
+          const msg =
+            state.source === 'local'
+              ? 'No local files picked yet. Choose PNGs named after the layers (top-bun.png, lettuce.png…).'
+              : 'No photo layers in public/images/burger/ yet. Switch to “Illustrated fallback” to see the art the site uses now.'
+          canvas.append(h('div', { class: 'empty' }, h('p', {}, msg)))
+        }
+        return canvas
+      }
+
+      const ease3 = (p) => (p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2) // power3.inOut, as in the scene
+      const sine = (p) => -(Math.cos(Math.PI * p) - 1) / 2
+      function transformAt(o, p) {
+        const e = ease3(p)
+        const s = o.stretch ?? 0
+        // Same keyframes as the scroll timeline: peak half-way, then relax to STRETCH_REST.
+        const sy = p <= 0.5 ? 1 + s * sine(p / 0.5) : 1 + s + (s * STRETCH_REST - s) * sine((p - 0.5) / 0.5)
+        const sx = p <= 0.5 ? 1 - s * 0.25 * sine(p / 0.5) : 1 - s * 0.25 + s * 0.25 * sine((p - 0.5) / 0.5)
+        return `translate(${(o.x ?? 0) * e}%, ${o.y * e}%) rotate(${(o.rotate ?? 0) * e}deg) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`
+      }
+      function applyExplode() {
+        const offsets = state.offsets[state.layout]
+        for (const node of $('exploded').querySelectorAll('.layer')) node.style.transform = transformAt(offsets[node.dataset.id], state.progress)
+        $('progress-out').textContent = `${Math.round(state.progress * 100)}%`
+      }
+
+      function setFocus(id) {
+        state.focus = id
+        for (const canvas of document.querySelectorAll('#assembled .canvas, #exploded .canvas')) {
+          canvas.toggleAttribute('data-focus', Boolean(id))
+          for (const node of canvas.querySelectorAll('.layer')) node.toggleAttribute('data-focused', node.dataset.id === id)
+        }
+      }
+
+      /* ── panels ── */
+      function renderStages(map) {
+        $('assembled').dataset.bg = state.bg
+        $('assembled').replaceChildren(buildCanvas(map))
+        $('exploded').dataset.bg = state.bg
+        $('exploded').replaceChildren(h('div', { class: 'viewport' }, buildCanvas(map, { exploded: true })))
+        applyExplode()
+        setFocus(state.focus)
+      }
+
+      function renderList(map) {
+        $('layer-list').replaceChildren(
+          ...TOP_DOWN.map((layer) => {
+            const r = map.get(layer.id)
+            const box = h('input', {
+              type: 'checkbox',
+              'aria-label': `Show ${layer.id}`,
+              onchange: (e) => {
+                if (e.target.checked) state.hidden.delete(layer.id)
+                else state.hidden.add(layer.id)
+                renderStages(map)
+              },
+            })
+            box.checked = !state.hidden.has(layer.id)
+            return h(
+              'li',
+              { onmouseenter: () => setFocus(layer.id), onmouseleave: () => setFocus(null), onfocusin: () => setFocus(layer.id), onfocusout: () => setFocus(null) },
+              box,
+              swatch(layer.id),
+              h('span', {}, layer.label, h('span', { class: 'muted mono' }, `  ${fileName(r?.path ?? layer.src)}`)),
+              chip(statusOf(r)),
+            )
+          }),
+        )
+        const issues = setIssues(map)
+        const missing = [...map.values()].filter((r) => r.missing).map((r) => fileName(r.path))
+        const items = [...issues]
+        if (missing.length) items.unshift({ level: 'error', text: `Missing: ${missing.join(', ')}.` })
+        if (!items.length) items.push({ level: 'ok', text: 'One canvas size, assembled positions, consistent scale and framing.' })
+        $('set-issues').replaceChildren(...items.map((i) => h('li', { 'data-l': i.level }, i.text)))
+      }
+
+      function renderReport(map) {
+        $('report').replaceChildren(
+          ...TOP_DOWN.map((layer) => {
+            const r = map.get(layer.id)
+            const s = statusOf(r)
+            if (s === 'missing') {
+              return h(
+                'tr',
+                {},
+                h('td', {}, swatch(layer.id), ' ', layer.id),
+                h('td', {}, chip(s)),
+                h('td', { class: 'mono' }, fileName(r.path)),
+                h('td', { colspan: '4', class: 'muted' }, '—'),
+                h('td', {}, `Expected at ${r.path}: ${TARGET_SIZE} × ${TARGET_SIZE} PNG with a transparent background.`),
+              )
+            }
+            const b = r.measure?.bbox
+            const k = (r.width ?? TARGET_SIZE) / 1000
+            const px = b ? b.map((v) => Math.round(v * k)).join(' ') : '—'
+            const off = b ? Math.round(((b[0] + b[2]) / 2 - 500) * k) : null
+            return h(
+              'tr',
+              {},
+              h('td', {}, swatch(layer.id), ' ', layer.id),
+              h('td', {}, chip(s)),
+              h('td', { class: 'mono' }, fileName(r.path), h('br'), h('span', { class: 'muted' }, `${r.format.toUpperCase()} · ${kb(r.bytes)}`)),
+              h('td', { class: 'num' }, r.width ? `${r.width} × ${r.height}` : '—'),
+              h('td', { class: 'num mono' }, px),
+              h('td', { class: 'num' }, b ? `${((b[2] - b[0]) / 10).toFixed(1)}%` : '—'),
+              h('td', { class: 'num' }, off == null ? '—' : off === 0 ? 'centred' : `${off > 0 ? '+' : ''}${off} px`),
+              h('td', {}, r.issues.length ? issueList(r.issues) : h('span', { class: 'muted' }, 'No problems')),
+            )
+          }),
+        )
+      }
+
+      function renderSingles(map) {
+        $('singles').replaceChildren(
+          ...TOP_DOWN.map((layer) => {
+            const r = map.get(layer.id)
+            const s = statusOf(r)
+            const stage = h('div', { class: 'card-stage', 'data-bg': state.bg })
+            if (s === 'missing') {
+              stage.append(h('div', { class: 'card-missing' }, h('strong', {}, 'Missing file'), h('span', { class: 'mono' }, r.path), h('span', { class: 'muted' }, `${TARGET_SIZE} × ${TARGET_SIZE} PNG, transparent`)))
+            } else {
+              if (r.url) stage.append(h('img', { src: r.url, alt: `${layer.label} layer` }))
+              const b = r.measure?.bbox
+              if (b) stage.append(h('div', { class: 'outline', style: `--c:${COLORS[layer.id]};left:${b[0] / 10}%;top:${b[1] / 10}%;width:${(b[2] - b[0]) / 10}%;height:${(b[3] - b[1]) / 10}%` }))
+              stage.append(h('span', { class: 'axis' }))
+            }
+            const b = r?.measure?.bbox
+            const meta = s === 'missing' ? null : h(
+              'dl',
+              {},
+              h('dt', {}, 'File'), h('dd', { class: 'mono' }, fileName(r.path)),
+              h('dt', {}, 'Format'), h('dd', {}, `${r.format.toUpperCase()}${r.format === 'png' ? (r.hasAlpha ? ' · alpha' : ' · no alpha') : ''} · ${kb(r.bytes)}`),
+              h('dt', {}, 'Canvas'), h('dd', {}, r.width ? `${r.width} × ${r.height} px` : '—'),
+              h('dt', {}, 'Outline'), h('dd', { class: 'mono' }, b ? b.join(' ') : '—'),
+            )
+            return h(
+              'figure',
+              { class: `card is-${s}` },
+              stage,
+              h('figcaption', {}, h('div', { class: 'card-title' }, swatch(layer.id), layer.id, chip(s)), meta, r?.issues?.length ? issueList(r.issues) : null),
+            )
+          }),
+        )
+      }
+
+      function renderSummary() {
+        const photo = results.photo
+        if (!photo) return
+        const list = [...photo.values()]
+        const found = list.filter((r) => !r.missing).length
+        const issues = [...list.flatMap((r) => r.issues), ...setIssues(photo)]
+        const errors = issues.filter((i) => i.level === 'error').length
+        const warns = issues.length - errors
+        const ready = found === list.length && errors === 0
+        const live = manifest.art === 'photo' ? 'Photo layers' : 'Illustrated fallback'
+        let tone = 'warn'
+        let msg
+        if (manifest.art === 'photo' && ready) {
+          tone = warns ? 'warn' : 'ok'
+          msg = warns ? `Live. ${warns} warning${warns === 1 ? '' : 's'} worth a look below.` : 'Live and passing every check.'
+        } else if (manifest.art === 'photo') {
+          tone = 'error'
+          msg = 'The files changed since the last check and no longer pass. Run npm run burger:check (the site falls back on the next build).'
+        } else if (ready) {
+          tone = 'ok'
+          msg = 'All seven pass. Run npm run burger:check (or restart npm run dev) to switch the site to them.'
+        } else if (found === 0) {
+          msg = 'No photo layers yet. Add the seven PNGs to public/images/burger/ (see BURGER-PROMPTS.md). The site keeps the illustrations until all seven pass.'
+        } else {
+          tone = 'error'
+          msg = `${list.length - found} missing, ${errors} error${errors === 1 ? '' : 's'}. The site keeps the illustrations until all seven pass.`
+        }
+        const el = $('summary')
+        el.dataset.tone = tone
+        el.replaceChildren(
+          h('p', {}, h('span', { class: 'k' }, 'Live on the site: '), h('strong', {}, live)),
+          h('p', {}, h('span', { class: 'k' }, 'Photo PNGs: '), `${found} of ${list.length} found · ${errors} error${errors === 1 ? '' : 's'} · ${warns} warning${warns === 1 ? '' : 's'}`),
+          h('p', { class: 'msg' }, msg),
+        )
+      }
+
+      function renderOffsets() {
+        const offsets = state.offsets[state.layout]
+        const field = (id, key, step) => {
+          const input = h('input', { type: 'number', step, 'aria-label': `${id} ${key}` })
+          input.value = String(offsets[id][key] ?? 0)
+          input.addEventListener('input', () => {
+            const v = Number.parseFloat(input.value)
+            offsets[id][key] = Number.isFinite(v) ? v : 0
+            applyExplode()
+            renderSnippet()
+          })
+          return h('td', {}, input)
+        }
+        $('offsets').replaceChildren(
+          ...TOP_DOWN.map((l) => h('tr', {}, h('td', {}, swatch(l.id), ' ', l.id), field(l.id, 'y', '0.5'), field(l.id, 'x', '0.5'), field(l.id, 'rotate', '0.5'), field(l.id, 'stretch', '0.01'))),
+        )
+        renderSnippet()
+      }
+
+      function snippet() {
+        const offsets = state.offsets[state.layout]
+        const n = (v) => String(Math.round(v * 1000) / 1000)
+        const line = (id) => {
+          const o = offsets[id]
+          const parts = [`y: ${n(o.y ?? 0)}`]
+          if (o.x) parts.push(`x: ${n(o.x)}`)
+          if (o.rotate) parts.push(`rotate: ${n(o.rotate)}`)
+          if (o.stretch) parts.push(`stretch: ${n(o.stretch)}`)
+          return `    ${id.includes('-') ? `'${id}'` : id}: { ${parts.join(', ')} },`
+        }
+        return `  ${state.layout}: {\n${TOP_DOWN.map((l) => line(l.id)).join('\n')}\n  },`
+      }
+      const renderSnippet = () => ($('snippet').textContent = snippet())
+
+      async function render() {
+        const map = results[state.source]
+        if (!map) return
+        renderStages(map)
+        renderList(map)
+        renderReport(map)
+        renderSingles(map)
+        renderSummary()
+      }
+
+      async function refresh(sources = [state.source]) {
+        await Promise.all([...new Set(['photo', ...sources])].map(load))
+        render()
+      }
+
+      /* ── controls ── */
+      for (const input of document.querySelectorAll('input[name="source"]')) {
+        input.addEventListener('change', async () => {
+          state.source = input.value
+          if (!results[state.source]) await load(state.source)
+          render()
+        })
+      }
+      for (const input of document.querySelectorAll('input[name="bg"]')) {
+        input.addEventListener('change', () => {
+          state.bg = input.value
+          render()
+        })
+      }
+      for (const input of document.querySelectorAll('[data-overlay]')) {
+        input.addEventListener('change', () => {
+          state.overlays[input.dataset.overlay] = input.checked
+          render()
+        })
+      }
+      for (const input of document.querySelectorAll('input[name="layout"]')) {
+        input.addEventListener('change', () => {
+          state.layout = input.value
+          renderOffsets()
+          applyExplode()
+        })
+      }
+      $('files').addEventListener('change', async (e) => {
+        state.local = new Map()
+        state.ignored = []
+        for (const file of e.target.files) {
+          const id = file.name.replace(/\.[^.]+$/, '').toLowerCase()
+          if (LAYERS.some((l) => l.id === id)) state.local.set(id, file)
+          else state.ignored.push(file.name)
+        }
+        if (state.ignored.length) alert(`Ignored (name doesn’t match a layer id): ${state.ignored.join(', ')}`)
+        state.source = 'local'
+        document.querySelector('input[name="source"][value="local"]').checked = true
+        await load('local')
+        render()
+      })
+      $('reload').addEventListener('click', () => refresh([state.source]))
+      $('progress').addEventListener('input', (e) => {
+        state.progress = Number(e.target.value) / 1000
+        applyExplode()
+      })
+      let raf = 0
+      $('play').addEventListener('click', (e) => {
+        if (raf) {
+          cancelAnimationFrame(raf)
+          raf = 0
+          e.target.textContent = 'Play'
+          return
+        }
+        e.target.textContent = 'Pause'
+        const t0 = performance.now() - Math.acos(1 - 2 * state.progress) * (3400 / (2 * Math.PI))
+        const tick = (t) => {
+          state.progress = 0.5 - 0.5 * Math.cos(((t - t0) / 3400) * 2 * Math.PI)
+          $('progress').value = String(Math.round(state.progress * 1000))
+          applyExplode()
+          raf = requestAnimationFrame(tick)
+        }
+        raf = requestAnimationFrame(tick)
+      })
+      $('copy').addEventListener('click', async (e) => {
+        try {
+          await navigator.clipboard.writeText(snippet())
+          e.target.textContent = 'Copied'
+        } catch {
+          e.target.textContent = 'Select the text below'
+        }
+        setTimeout(() => (e.target.textContent = 'Copy snippet'), 1600)
+      })
+      $('reset').addEventListener('click', () => {
+        state.offsets = structuredClone(EXPLODE)
+        renderOffsets()
+        applyExplode()
+      })
+
+      /* ── generation guides ── */
+      async function rasterize(src) {
+        const canvas = document.createElement('canvas')
+        canvas.width = canvas.height = TARGET_SIZE
+        canvas.getContext('2d').drawImage(await loadImage(src), 0, 0, TARGET_SIZE, TARGET_SIZE)
+        return canvas
+      }
+      const download = (canvas, name) =>
+        new Promise((resolve) =>
+          canvas.toBlob((blob) => {
+            const a = h('a', { href: URL.createObjectURL(blob), download: name })
+            document.body.append(a)
+            a.click()
+            a.remove()
+            setTimeout(() => URL.revokeObjectURL(a.href), 5000)
+            resolve()
+          }, 'image/png'),
+        )
+      const pause = (ms) => new Promise((r) => setTimeout(r, ms))
+      for (const button of document.querySelectorAll('[data-export]')) {
+        button.addEventListener('click', async () => {
+          const kind = button.dataset.export
+          button.disabled = true
+          if (kind === 'assembled') {
+            const canvas = document.createElement('canvas')
+            canvas.width = canvas.height = TARGET_SIZE
+            const ctx = canvas.getContext('2d')
+            for (const l of LAYERS) ctx.drawImage(await loadImage(l.fallback.src), 0, 0, TARGET_SIZE, TARGET_SIZE)
+            await download(canvas, 'guide-assembled.png')
+          } else {
+            for (const l of LAYERS) {
+              const canvas = await rasterize(l.fallback.src)
+              if (kind === 'mask') {
+                // White silhouette (soft edges kept) on solid black.
+                const ctx = canvas.getContext('2d')
+                ctx.globalCompositeOperation = 'source-in'
+                ctx.fillStyle = '#fff'
+                ctx.fillRect(0, 0, TARGET_SIZE, TARGET_SIZE)
+                ctx.globalCompositeOperation = 'destination-over'
+                ctx.fillStyle = '#000'
+                ctx.fillRect(0, 0, TARGET_SIZE, TARGET_SIZE)
+              }
+              await download(canvas, `${kind}-${l.id}.png`)
+              await pause(350)
+            }
+          }
+          button.disabled = false
+        })
+      }
+
+      /* ── product renders ── */
+      const PRODUCTS = ['theory-classic', 'double-trouble', 'fire-house', 'crispy-chicken', 'cheese-overload', 'ultimate-stack', 'nashville-heat', 'garden-theory', 'truffle-shroom']
+      $('products').replaceChildren(
+        ...PRODUCTS.map((id) => h('figure', {}, h('div', { class: 'canvas', 'data-bg': 'scene' }, h('img', { src: `/images/products/${id}.svg`, alt: '' })), h('figcaption', {}, id))),
+      )
+
+      renderOffsets()
+      refresh(['photo'])
+    </script>
+  </body>
+</html>
