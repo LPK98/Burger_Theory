@@ -124,10 +124,10 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-8 text-[0.8125rem] text-dim">
+          <p className="mt-8 text-[0.9375rem] text-dim">
             No account? Administrators are added by the owner with <code className="rounded bg-smoke px-1.5 py-0.5 text-grey">php artisan app:create-admin</code>.
           </p>
-          <a href="/" className="mt-3 inline-block text-[0.8125rem] text-grey underline-offset-4 hover:text-ember hover:underline">
+          <a href="/" className="mt-3 inline-block text-[0.9375rem] text-grey underline-offset-4 hover:text-ember hover:underline">
             Back to the Burger Theory site
           </a>
         </div>

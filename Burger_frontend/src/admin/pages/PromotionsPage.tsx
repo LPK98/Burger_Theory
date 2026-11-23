@@ -286,7 +286,7 @@ function CouponModal({ coupon, onClose }: { coupon: Coupon | 'new' | null; onClo
           <TextField label="Description" optional value={form.description} maxLength={255} onChange={(e) => update('description', e.target.value)} error={errors.description} placeholder="20% off on weekends" />
         </div>
         <div>
-          <p className="mb-1.5 text-[0.8125rem] font-medium text-bone/85">Discount</p>
+          <p className="mb-1.5 text-[0.9375rem] font-medium text-bone/85">Discount</p>
           <Segmented
             label="Discount type"
             value={form.discount_type}

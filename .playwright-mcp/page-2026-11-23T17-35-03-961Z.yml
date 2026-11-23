@@ -1,0 +1,82 @@
+- generic [ref=e2]:
+  - link "Skip to content" [ref=e3] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e4]
+  - main [ref=e7]:
+    - region "Not just a burger." [ref=e10]:
+      - generic:
+        - heading "Not just a burger." [level=1]:
+          - generic: Not just
+          - generic: a burger.
+        - paragraph
+      - generic [ref=e16]:
+        - heading "Inside the burger" [level=2] [ref=e17]
+        - list [ref=e18]:
+          - listitem [ref=e19]: "The perfect start: Brioche from our own oven, baked before sunrise, split and toasted on the flat-top to order."
+          - listitem [ref=e20]: "Fresh from the garden: Butter lettuce and vine tomatoes from two farms we can drive to. Sliced every service, never the night before."
+          - listitem [ref=e21]: "The melt: Twelve-month cheddar laid on in the last thirty seconds, so it drapes over the edge instead of sweating."
+          - listitem [ref=e22]: "The signature beef: Chuck and brisket ground every morning, smashed thin on a 230 °C griddle for a lacy, caramelised crust."
+          - listitem [ref=e23]: "The secret sauce: Tangy, smoky, a little sweet. The recipe lives on one index card, and the card lives in the safe."
+    - region "The Theory Classic" [ref=e24]:
+      - generic [ref=e25]:
+        - heading "The Theory Classic" [level=2] [ref=e27]:
+          - generic [ref=e28]: The Theory
+          - generic [ref=e30]: Classic
+        - generic [ref=e33]:
+          - img [aria-hidden] [ref=e38]:
+            - generic [ref=e41]: The Theory Classic ✦ Double smashed ✦ Aged cheddar ✦ Toasted brioche ✦
+          - img "Double cheeseburger with lettuce and tomato on a sesame brioche bun" [ref=e44]
+          - img [aria-hidden] [ref=e48]:
+            - generic [ref=e51]: The Theory Classic ✦ Double smashed ✦ Aged cheddar ✦ Toasted brioche ✦
+    - region "Good food. No shortcuts." [ref=e52]:
+      - generic [ref=e53]:
+        - figure "Our double smash burger. Brioche baked before sunrise, pickles brined for five days, and a crust from a 230 °C griddle." [ref=e54]:
+          - img "A double smash burger with melted cheese and pickles on a dark table" [ref=e57]
+          - img "Vine tomatoes with drops of water on a black background" [ref=e59]
+        - generic [ref=e61]:
+          - heading "Good food. No shortcuts." [level=2] [ref=e62]:
+            - generic [ref=e63]: Good food.
+            - generic [ref=e65]: No shortcuts.
+          - list [ref=e68]
+    - region "Signature menu" [ref=e69]:
+      - generic [ref=e70]:
+        - heading "Signature menu" [level=2] [ref=e72]:
+          - generic [ref=e73]: Signature
+          - generic [ref=e75]: menu
+        - paragraph [ref=e78]: Showing all 9 burgers.
+    - region "Pull up a stool." [ref=e89]:
+      - generic [ref=e90]:
+        - generic [ref=e91]:
+          - heading "Pull up a stool." [level=2] [ref=e93]:
+            - generic [ref=e94]: Pull up
+            - generic [ref=e96]: a stool.
+          - figure [ref=e98]:
+            - img "A cook at the stove as flame bursts from the pan" [ref=e99]
+          - figure [ref=e101]:
+            - img "Close-up of a burger with melted cheese, barbecue sauce and lettuce" [ref=e102]
+        - figure [ref=e104]:
+          - 'img "The dining room at night: teal walls, warm pendant lights and wooden chairs" [ref=e105]'
+        - figure [ref=e106]:
+          - 'img "The bar: chalkboard menus, bottles and a row of stools" [ref=e107]'
+    - region "Your next obsession is one bite away." [ref=e108]:
+      - generic [ref=e109]:
+        - heading "Your next obsession is one bite away." [level=2] [ref=e111]:
+          - generic [ref=e112]: Your next
+          - generic [ref=e114]: obsession is
+          - generic [ref=e116]: one bite away.
+        - 'img "A burger stacked layer by layer: heel, sauce, beef, cheddar, tomato, lettuce and a sesame crown." [ref=e120]'
+  - contentinfo [ref=e121]:
+    - paragraph [aria-hidden]:
+      - generic: B
+      - generic: u
+      - generic: "n"
+      - generic: T
+      - generic: h
+      - generic: e
+      - generic: o
+      - generic: r
+      - generic: "y"
+    - generic [ref=e123]:
+      - paragraph [ref=e124]: © 2026 Bun Theory. All rights reserved.
+      - button "Back to top" [ref=e125] [cursor=pointer]
+  - status

@@ -191,7 +191,7 @@ function SettingsForm({ response }: { response: SettingsResponse }) {
             <Switch checked={form.accepting_orders} onChange={(v) => update('accepting_orders', v)} label="Taking orders" description="Switch off to pause online ordering, e.g. when the kitchen is full." />
             <Switch checked={form.delivery_enabled} onChange={(v) => update('delivery_enabled', v)} label="Delivery" />
             <Switch checked={form.pickup_enabled} onChange={(v) => update('pickup_enabled', v)} label="Pickup" />
-            {errors.pickup_enabled && <p className="text-[0.8125rem] text-[#ff8a83]">{errors.pickup_enabled}</p>}
+            {errors.pickup_enabled && <p className="text-[0.9375rem] text-[#ff8a83]">{errors.pickup_enabled}</p>}
             <div className="grid gap-4 border-t border-rule pt-5 sm:grid-cols-2">
               <TextField label="Delivery charge" prefix="$" inputMode="decimal" value={form.delivery_fee} onChange={(e) => update('delivery_fee', e.target.value)} error={errors.delivery_fee} />
               <TextField label="Free delivery from" optional prefix="$" inputMode="decimal" value={form.free_delivery_threshold} onChange={(e) => update('free_delivery_threshold', e.target.value)} error={errors.free_delivery_threshold} hint="Order total after discounts. Blank means never free." />
@@ -221,7 +221,7 @@ function SettingsForm({ response }: { response: SettingsResponse }) {
               label="PayHere card payments"
               description={integrations.payhere ? `Connected${integrations.payhere_sandbox ? ' to the sandbox (test payments)' : ' to the live account'}.` : 'Not connected: customers won’t see it until PAYHERE_MERCHANT_ID and PAYHERE_MERCHANT_SECRET are set on the server.'}
             />
-            {errors.cod_enabled && <p className="text-[0.8125rem] text-[#ff8a83]">{errors.cod_enabled}</p>}
+            {errors.cod_enabled && <p className="text-[0.9375rem] text-[#ff8a83]">{errors.cod_enabled}</p>}
             <div className="space-y-2 border-t border-rule pt-5 text-sm">
               <p className="text-xs font-medium text-dim">Server connections</p>
               <Integration ok={integrations.stripe && integrations.stripe_webhook} label="Stripe" detail={integrations.stripe ? `${integrations.stripe_test_mode ? 'Test mode' : 'Live'}${integrations.stripe_webhook ? '' : ', webhook secret missing'}` : 'Not configured'} />
@@ -325,7 +325,7 @@ function LogoCard({ logoUrl, cloudinary }: { logoUrl: string | null; cloudinary:
             </Button>
           )}
         </div>
-        {!cloudinary && <p className="text-[0.8125rem] text-dim">Uploads need Cloudinary credentials in the backend’s .env file.</p>}
+        {!cloudinary && <p className="text-[0.9375rem] text-dim">Uploads need Cloudinary credentials in the backend’s .env file.</p>}
       </div>
     </Card>
   )

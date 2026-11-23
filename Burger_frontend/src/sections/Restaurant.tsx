@@ -1,4 +1,4 @@
-import { MapPin } from 'lucide-react'
+import { ArrowUpRight, MapPin } from 'lucide-react'
 import { useRef } from 'react'
 import { HoursCard } from '../components/HoursCard'
 import { SplitLines } from '../components/SplitLines'
@@ -33,23 +33,28 @@ function Photo({ name, alt, frame, sizes, className }: PhotoProps) {
   )
 }
 
-/** A tiny drafted street map with the restaurant pinned on it (placeholder location). */
-function StreetSketch() {
+/** The restaurant's exact position. The Find us card opens it in Google Maps and the embed is centred on it. */
+const MAPS_COORDS = '7.0939121,80.3179989'
+const MAPS_URL = `https://www.google.com/maps?q=${MAPS_COORDS}`
+const MAPS_EMBED_URL = `https://www.google.com/maps?q=${MAPS_COORDS}&z=17&output=embed`
+
+/**
+ * The live Google Map. It sits above the card's stretched link (z-10), so drag, zoom and the map's
+ * own controls keep working; everywhere else on the card opens Google Maps.
+ * The filter tones Google's light tiles down to the dark palette (hue-rotate keeps the red pin red).
+ */
+function LiveMap() {
   return (
-    <svg viewBox="0 0 320 160" className="h-auto w-full" aria-hidden="true" focusable="false">
-      <rect width="320" height="160" fill="#101010" />
-      <g stroke="rgba(244,233,216,0.14)" strokeWidth="9" strokeLinecap="square" fill="none">
-        <path d="M-10 52H330M-10 118H330M70 -10V170M196 -10V170M262 -10L300 170" />
-      </g>
-      <g stroke="rgba(244,233,216,0.07)" strokeWidth="3" fill="none">
-        <path d="M-10 86H330M132 -10V170M20 -10V170" />
-      </g>
-      <path d="M70 118H196" stroke="#F07832" strokeWidth="3" strokeDasharray="1 7" strokeLinecap="round" fill="none" />
-      <circle cx="196" cy="86" r="18" fill="rgba(240,120,50,0.16)" />
-      <circle cx="196" cy="86" r="7" fill="#F07832" />
-      <text x="210" y="74" fill="#F4E9D8" fontSize="11" fontFamily="Anybody Variable, sans-serif" fontWeight="700">BUN THEORY</text>
-      <text x="76" y="111" fill="rgba(244,233,216,0.5)" fontSize="9" fontFamily="Anybody Variable, sans-serif">EMBER ST</text>
-    </svg>
+    <div className="relative z-10 mt-6 aspect-[4/3] overflow-hidden sm:aspect-[2/1] rounded-[3px] border border-line bg-[#101010]">
+      <iframe
+        src={MAPS_EMBED_URL}
+        title="Map showing Bun Theory's location"
+        loading="lazy"
+        allowFullScreen
+        referrerPolicy="strict-origin-when-cross-origin"
+        className="absolute inset-0 h-full w-full border-0 [filter:invert(0.9)_hue-rotate(180deg)_saturate(0.75)_brightness(0.95)]"
+      />
+    </div>
   )
 }
 
@@ -115,16 +120,33 @@ export function Restaurant() {
             frame="aspect-[3/4]"
             sizes="(min-width: 1024px) 38vw, 100vw"
           />
-          <div data-card className="border border-line bg-ink p-7 lg:p-8">
+          <div
+            data-card
+            className="group relative cursor-pointer border border-line bg-ink p-7 transition-[border-color,box-shadow] duration-500 hover:border-ember/45 hover:shadow-[0_0_32px_-12px_rgba(240,120,50,0.35)] lg:p-8"
+          >
             <div className="flex items-center gap-3">
               <MapPin className="h-5 w-5 text-ember" aria-hidden="true" />
-              <h3 className="display text-[2.4rem] text-cream">Find us</h3>
+              <h3 className="display text-[2.4rem] text-cream">
+                {/* Stretched link: its ::after covers the whole card, so the card is one link. */}
+                <a
+                  href={MAPS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="uppercase focus-visible:outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-ember"
+                >
+                  Find us
+                  <span className="sr-only">: open Bun Theory in Google Maps (new tab)</span>
+                </a>
+              </h3>
             </div>
-            <div className="mt-6 overflow-hidden rounded-[3px] border border-line">
-              <StreetSketch />
-            </div>
+            <LiveMap />
             <FindUsAddress />
-            <p className="mt-3 text-sm text-ash">Location shown is a placeholder until the restaurant address is confirmed.</p>
+            <p className="mt-3 flex justify-end text-sm">
+              <span className="ui inline-flex items-center gap-1 text-ember" aria-hidden="true">
+                View on Google Maps
+                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </span>
+            </p>
           </div>
         </div>
 

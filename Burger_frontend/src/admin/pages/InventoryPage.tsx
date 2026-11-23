@@ -100,7 +100,7 @@ function IngredientsTab({ f, set, onEdit, onAdjust }: { f: F; set: SetF; onEdit:
               aria-pressed={f.status === o.key}
               onClick={() => set({ status: o.key })}
               className={cn(
-                'h-8 rounded-full border px-3 text-[0.8125rem] transition-colors',
+                'h-8 rounded-full border px-3 text-[0.9375rem] transition-colors',
                 f.status === o.key ? 'border-ember/60 bg-ember/12 text-bone' : 'border-rule-strong text-grey hover:text-bone',
               )}
             >
@@ -297,7 +297,7 @@ function ConsumptionTab({ f, set }: { f: F; set: SetF }) {
       <div className="flex flex-wrap items-end gap-2 border-b border-rule p-4">
         <TextField label="From" type="date" value={from} max={to} onChange={(e) => set({ from: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-40" />
         <TextField label="To" type="date" value={to} min={from} onChange={(e) => set({ to: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-40" />
-        <p className="pb-2.5 text-[0.8125rem] text-dim">Amounts are in each ingredient’s own unit.</p>
+        <p className="pb-2.5 text-[0.9375rem] text-dim">Amounts are in each ingredient’s own unit.</p>
       </div>
       {report.isError ? (
         <ErrorState message={errorMessage(report.error)} onRetry={() => report.refetch()} />

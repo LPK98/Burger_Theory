@@ -39,7 +39,7 @@ export default function PaymentsPage() {
           { label: 'Needs attention', value: s && count(s.needs_attention), sub: 'Refunds owed or chargebacks', alert: !!s && s.needs_attention > 0 },
         ].map((t) => (
           <Card key={t.label} className={cn('p-5', t.alert && 'border-serious/40')}>
-            <p className="text-[0.8125rem] text-grey">{t.label}</p>
+            <p className="text-[0.9375rem] text-grey">{t.label}</p>
             {t.value ? <p className="mt-2 text-2xl font-semibold text-bone">{t.value}</p> : <Skeleton className="mt-2 h-7 w-24" />}
             <p className="mt-1.5 text-xs text-dim">{t.sub}</p>
           </Card>
