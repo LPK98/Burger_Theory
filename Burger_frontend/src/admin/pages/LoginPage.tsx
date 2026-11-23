@@ -52,12 +52,12 @@ export function LoginPage() {
       <section className="relative hidden overflow-hidden border-r border-rule lg:block" aria-hidden="true">
         <div className="absolute inset-0 bg-[radial-gradient(40rem_32rem_at_30%_60%,rgb(234_95_23/0.22),transparent_65%)]" />
         <div className="relative flex h-full flex-col justify-between p-12">
-          <div className="flex items-center gap-3">
-            <BrandMark className="h-9 w-9" />
-            <span className="title text-2xl text-bone">Burger Theory</span>
+          <div className="flex items-center gap-3.5">
+            <BrandMark className="h-12 w-12 shrink-0" />
+            <span className="title text-[2.25rem] text-bone">Burger Theory</span>
           </div>
           <div>
-            <p className="title text-[clamp(4rem,8vw,7.5rem)] text-bone">
+            <p className="title text-[clamp(4rem,8.2vw-0.25rem,9.5rem)] text-bone">
               Every order,
               <br />
               every bun,
@@ -72,9 +72,9 @@ export function LoginPage() {
 
       <section className="flex items-center justify-center px-5 py-12">
         <div className="w-full max-w-[24rem]">
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <BrandMark className="h-9 w-9" />
-            <span className="title text-2xl text-bone">Burger Theory</span>
+          <div className="mb-8 flex items-center gap-3.5 lg:hidden">
+            <BrandMark className="h-12 w-12 shrink-0" />
+            <span className="title text-[2.25rem] text-bone">Burger Theory</span>
           </div>
           <div className="mb-6 grid h-11 w-11 place-items-center rounded-xl border border-rule-strong bg-smoke text-ember">
             <LockKeyhole className="h-5 w-5" aria-hidden="true" />

@@ -74,11 +74,11 @@ export function BrandMark({ className }: { className?: string }) {
 
 function Brand() {
   return (
-    <div className="flex items-center gap-2.5">
-      <BrandMark className="h-8 w-8" />
+    <div className="flex items-center gap-3">
+      <BrandMark className="h-10 w-10 shrink-0" />
       <div className="leading-none">
-        <p className="title text-[1.35rem] text-bone">Burger Theory</p>
-        <p className="mt-1 text-[0.8125rem] font-medium text-dim">Admin portal</p>
+        <p className="title whitespace-nowrap text-[1.75rem] text-bone">Burger Theory</p>
+        <p className="mt-1.5 text-[0.9375rem] font-medium text-dim">Admin portal</p>
       </div>
     </div>
   )
