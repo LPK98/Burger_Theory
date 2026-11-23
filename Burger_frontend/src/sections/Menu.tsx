@@ -98,7 +98,8 @@ export function Menu() {
                     aria-pressed={active}
                     onClick={() => choose(category.id)}
                     className={cn(
-                      'ui inline-flex h-11 items-center gap-2 rounded-full border px-4 text-sm transition-[background-color,border-color,color] duration-300',
+                      // Same corners and motion as the "Add to cart" buttons (Button's square shape).
+                      'ui inline-flex h-11 items-center gap-2 rounded-[3px] border px-4 text-sm transition-[background-color,border-color,color] duration-300 ease-[var(--ease-expo)]',
                       active ? 'border-ember bg-ember text-ink' : 'border-cream/20 text-cream/80 hover:border-cream/60 hover:text-cream',
                     )}
                   >

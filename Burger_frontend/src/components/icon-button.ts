@@ -1,6 +1,6 @@
-/** The round icon buttons in the navigation bar and the mobile menu (account, cart, menu, close). */
+/** The icon buttons in the navigation bar and the mobile menu (account, cart, menu, close). */
 export const ICON_BUTTON =
-  'relative grid h-11 w-11 place-items-center rounded-full border ' +
+  'relative grid h-11 w-11 place-items-center rounded-[3px] border ' +
   'transition-[color,border-color,background-color] duration-300 ease-[var(--ease-expo)] ' +
   'hover:border-ember/70 hover:bg-ember/10 hover:text-ember'
 

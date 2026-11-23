@@ -70,7 +70,7 @@ function OrderList({ f, set, page }: { f: Filters; set: SetFilters; page: number
     <Card>
       <div className="flex flex-wrap items-end gap-2 border-b border-rule p-4">
         <SearchInput className="w-full sm:w-80" label="Search orders" placeholder="Order no., customer, email or phone" value={search} onChange={setSearch} />
-        <FilterSelect label="Status" value={f.status} onChange={(e) => set({ status: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-44">
+        <FilterSelect label="Status" value={f.status} onChange={(e) => set({ status: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-44">
           <option value="">All statuses</option>
           <option value="active">In the kitchen</option>
           {(Object.keys(ORDER_STATUS_LABEL) as OrderStatus[]).map((s) => (
@@ -79,7 +79,7 @@ function OrderList({ f, set, page }: { f: Filters; set: SetFilters; page: number
             </option>
           ))}
         </FilterSelect>
-        <FilterSelect label="Payment status" value={f.payment_status} onChange={(e) => set({ payment_status: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-44">
+        <FilterSelect label="Payment status" value={f.payment_status} onChange={(e) => set({ payment_status: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-44">
           <option value="">Any payment</option>
           {(Object.keys(PAYMENT_STATUS_LABEL) as PaymentStatus[]).map((s) => (
             <option key={s} value={s}>
@@ -87,7 +87,7 @@ function OrderList({ f, set, page }: { f: Filters; set: SetFilters; page: number
             </option>
           ))}
         </FilterSelect>
-        <FilterSelect label="Payment method" value={f.payment_method} onChange={(e) => set({ payment_method: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-40">
+        <FilterSelect label="Payment method" value={f.payment_method} onChange={(e) => set({ payment_method: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-40">
           <option value="">Any method</option>
           {(Object.keys(PAYMENT_METHOD_LABEL) as PaymentMethod[]).map((m) => (
             <option key={m} value={m}>
@@ -95,18 +95,18 @@ function OrderList({ f, set, page }: { f: Filters; set: SetFilters; page: number
             </option>
           ))}
         </FilterSelect>
-        <FilterSelect label="Fulfilment" value={f.fulfilment_type} onChange={(e) => set({ fulfilment_type: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-36">
+        <FilterSelect label="Fulfilment" value={f.fulfilment_type} onChange={(e) => set({ fulfilment_type: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-36">
           <option value="">Delivery or pickup</option>
           <option value="delivery">Delivery</option>
           <option value="pickup">Pickup</option>
         </FilterSelect>
         <div className="flex w-full items-center gap-2 sm:w-auto" role="group" aria-label="Placed between">
-          <span className="shrink-0 text-[0.8125rem] text-dim">Placed</span>
+          <span className="shrink-0 text-[0.9375rem] text-dim">Placed</span>
           <TextField label="Placed from" hideLabel type="date" value={f.date_from} max={f.date_to || undefined} onChange={(e) => set({ date_from: e.target.value })} className="min-w-0 flex-1 sm:w-40 sm:flex-none" />
-          <span className="text-[0.8125rem] text-dim">to</span>
+          <span className="text-[0.9375rem] text-dim">to</span>
           <TextField label="Placed until" hideLabel type="date" value={f.date_to} min={f.date_from || undefined} onChange={(e) => set({ date_to: e.target.value })} className="min-w-0 flex-1 sm:w-40 sm:flex-none" />
         </div>
-        <FilterSelect label="Sort" value={f.sort} onChange={(e) => set({ sort: e.target.value })} className="w-full sm:w-40">
+        <FilterSelect label="Sort" value={f.sort} onChange={(e) => set({ sort: e.target.value })} className="w-full sm:w-auto sm:min-w-40">
           <option value="">Newest first</option>
           <option value="oldest">Oldest first</option>
           <option value="-total">Highest total</option>
@@ -125,7 +125,7 @@ function OrderList({ f, set, page }: { f: Filters; set: SetFilters; page: number
           </Button>
         )}
       </div>
-      {f.customer_id && <p className="border-b border-rule px-5 py-2.5 text-[0.8125rem] text-grey">Showing one customer’s orders.</p>}
+      {f.customer_id && <p className="border-b border-rule px-5 py-2.5 text-[0.9375rem] text-grey">Showing one customer’s orders.</p>}
 
       {query.isError ? (
         <ErrorState message={errorMessage(query.error)} onRetry={() => query.refetch()} />
@@ -248,7 +248,7 @@ function KitchenBoard({ onOpen }: { onOpen: (orderNumber: string) => void }) {
                   {!query.data ? (
                     <Skeleton className="h-36" />
                   ) : items.length === 0 ? (
-                    <p className="px-1 py-6 text-center text-[0.8125rem] text-dim">Nothing here</p>
+                    <p className="px-1 py-6 text-center text-[0.9375rem] text-dim">Nothing here</p>
                   ) : (
                     items.map((o) => (
                       <Ticket
@@ -325,13 +325,13 @@ function Ticket({ order: o, now, onOpen, onAdvance, onVoid, busy }: { order: Ord
               type="button"
               disabled={busy || (next === 'confirmed' && awaitingPayHere)}
               onClick={() => onAdvance(next)}
-              className="h-8 flex-1 whitespace-nowrap rounded-lg bg-[#1b1510] px-2 text-[0.8125rem] font-semibold text-[#f3ede4] transition-colors hover:bg-ember hover:text-ember-ink disabled:cursor-not-allowed disabled:opacity-40"
+              className="h-8 flex-1 whitespace-nowrap rounded-lg bg-[#1b1510] px-2 text-[0.9375rem] font-semibold text-[#f3ede4] transition-colors hover:bg-ember hover:text-ember-ink disabled:cursor-not-allowed disabled:opacity-40"
             >
               {busy ? 'Saving…' : ORDER_STATUS_ACTION[next]}
             </button>
           )}
           {voidStatus && (
-            <button type="button" onClick={() => onVoid(voidStatus)} className="h-8 rounded-lg px-2.5 text-[0.8125rem] font-medium text-[#a3261f] hover:bg-[#a3261f]/10">
+            <button type="button" onClick={() => onVoid(voidStatus)} className="h-8 rounded-lg px-2.5 text-[0.9375rem] font-medium text-[#a3261f] hover:bg-[#a3261f]/10">
               {voidStatus === 'rejected' ? 'Reject' : 'Cancel'}
             </button>
           )}

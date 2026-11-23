@@ -28,12 +28,12 @@ export default function CustomersPage() {
       <Card>
         <div className="flex flex-wrap items-center gap-2 border-b border-rule p-4">
           <SearchInput className="w-full sm:w-72" label="Search customers" placeholder="Name, email or phone" value={search} onChange={setSearch} />
-          <FilterSelect label="Orders" value={f.ordered} onChange={(e) => set({ ordered: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-48">
+          <FilterSelect label="Orders" value={f.ordered} onChange={(e) => set({ ordered: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-48">
             <option value="">Everyone</option>
             <option value="yes">Has ordered</option>
             <option value="no">Never ordered</option>
           </FilterSelect>
-          <FilterSelect label="Sort" value={f.sort} onChange={(e) => set({ sort: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-48">
+          <FilterSelect label="Sort" value={f.sort} onChange={(e) => set({ sort: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-48">
             <option value="">Newest accounts</option>
             <option value="spent">Highest spending</option>
             <option value="orders">Most orders</option>
@@ -197,7 +197,7 @@ function CustomerDrawer({ id, onClose }: { id: number | null; onClose: () => voi
                 Order history
               </h3>
               {c.orders_count > 0 && (
-                <Link to={`/orders?customer_id=${c.id}`} className="text-[0.8125rem] text-ember-hot hover:underline">
+                <Link to={`/orders?customer_id=${c.id}`} className="text-[0.9375rem] text-ember-hot hover:underline">
                   Open in Orders
                 </Link>
               )}

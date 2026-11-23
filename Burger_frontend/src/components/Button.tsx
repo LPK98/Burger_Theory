@@ -3,7 +3,7 @@ import { cn } from '../lib/utils'
 
 type Variant = 'primary' | 'outline' | 'ghost' | 'ink'
 type Size = 'sm' | 'md' | 'lg'
-type Shape = 'square' | 'pill'
+type Shape = 'square'
 
 const base =
   'group relative inline-flex shrink-0 select-none items-center justify-center gap-2.5 ui whitespace-nowrap ' +
@@ -20,20 +20,13 @@ const variants: Record<Variant, string> = {
 
 const shapes: Record<Shape, string> = {
   square: 'rounded-[3px]',
-  pill: 'rounded-full',
 }
 
-/** Pills carry more side padding than squared buttons, and the small pill matches the 44px icon buttons. */
 const sizes: Record<Shape, Record<Size, string>> = {
   square: {
     sm: 'h-10 px-4 text-[0.8125rem]',
     md: 'h-12 px-6 text-[0.9375rem]',
     lg: 'h-14 px-8 text-base',
-  },
-  pill: {
-    sm: 'h-11 px-5 text-[0.8125rem]',
-    md: 'h-12 px-7 text-[0.9375rem]',
-    lg: 'h-14 px-9 text-base',
   },
 }
 

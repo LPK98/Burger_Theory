@@ -214,6 +214,10 @@ export interface RestaurantProfile {
   address: { line1: string | null; line2: string | null; city: string | null; postal_code: string | null }
   opening_hours: { day: Weekday; closed: boolean; open: ClockTime | null; close: ClockTime | null }[]
   social: { instagram: string | null; facebook: string | null }
+  /** Google Maps link for the restaurant (the Find us card opens it). */
+  maps_url: string | null
+  /** Google Maps embed (iframe src) shown in the Find us card. */
+  maps_embed_url: string | null
   logo_url: string | null
 }
 

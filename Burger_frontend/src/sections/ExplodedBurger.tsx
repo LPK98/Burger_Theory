@@ -121,7 +121,20 @@ export function ExplodedBurger() {
 
           /* 2 — Idle float on its own wrapper. */
           const float = desktop ? FLOAT.desktop : FLOAT.compact
-          gsap.to(q('[data-anim="float"]'), { y: -float, duration: 3.4, ease: 'sine.inOut', yoyo: true, repeat: -1 })
+          const bob = gsap.to(q('[data-anim="float"]'), { y: -float, duration: 3.4, ease: 'sine.inOut', yoyo: true, repeat: -1 })
+
+          // Performance: the endless loops (the bob, the scroll cue, the pointer glow) stop while the
+          // scene is off screen, and pick up where they were when it comes back. The wrapper spans the
+          // whole pinned scroll, so they keep running for as long as any of the scene can be seen.
+          let onScreen = true
+          const wrap = scene.closest('.scene-wrap') ?? scene
+          const visibility = new IntersectionObserver(([entry]) => {
+            onScreen = entry.isIntersecting
+            scene.toggleAttribute('data-offscreen', !onScreen)
+            if (onScreen) bob.resume()
+            else bob.pause()
+          })
+          visibility.observe(wrap)
 
           // While the headline is up, the burger sits centred between its two lines (the CSS works
           // out where: .hero-anchor). Half the float is added so the bob is centred there too.
@@ -209,8 +222,14 @@ export function ExplodedBurger() {
           const railItems = q('[data-rail-item]')
           const railFill = q('[data-anim="rail-fill"]')
           let current = -2
+          let heroGone = false
           tl.eventCallback('onUpdate', () => {
             const t = tl.time()
+            // The scroll cue is faded out by 0.5; stop its loop until the headline comes back.
+            if (t > 0.55 !== heroGone) {
+              heroGone = !heroGone
+              scene.toggleAttribute('data-hero-gone', heroGone)
+            }
             let index = -1
             starts.forEach((s, i) => {
               if (t >= s) index = i
@@ -241,6 +260,7 @@ export function ExplodedBurger() {
             const xTo = gsap.quickTo(follower, 'x', { duration: 1.8, ease: 'power3.out' })
             const yTo = gsap.quickTo(follower, 'y', { duration: 1.8, ease: 'power3.out' })
             onMove = (e: PointerEvent) => {
+              if (!onScreen) return
               xTo((e.clientX / window.innerWidth - 0.5) * 110)
               yTo((e.clientY / window.innerHeight - 0.5) * 70)
             }
@@ -250,6 +270,9 @@ export function ExplodedBurger() {
           return () => {
             alive = false
             window.clearTimeout(fallback)
+            visibility.disconnect()
+            scene.removeAttribute('data-offscreen')
+            scene.removeAttribute('data-hero-gone')
             if (onMove) window.removeEventListener('pointermove', onMove)
           }
         },

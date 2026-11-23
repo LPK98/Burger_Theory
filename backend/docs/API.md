@@ -151,14 +151,14 @@ Every successful admin write (POST/PUT/PATCH/DELETE) and every admin sign-in is 
 | GET/PUT/PATCH/DELETE | `/admin/coupons/{id}` | Show / update / soft-delete. |
 | GET | `/admin/reviews` | `product_id`, `is_published`. |
 | PATCH/DELETE | `/admin/reviews/{id}` | `{ is_published }` / delete. |
-| GET/PUT/PATCH | `/admin/settings` | Ordering (delivery fee, free-delivery threshold, minimum order, prep minutes, on/off switches) and the restaurant profile: `restaurant_name`, `contact_phone`, `contact_email`, `address_line1`, `address_line2`, `city`, `postal_code`, `instagram_url`, `facebook_url` (https links on instagram.com / facebook.com; null hides the icon). Opening hours moved to `/admin/opening-hours` (an `opening_hours` field sent here is ignored). `meta.integrations` says whether Cloudinary and PayHere are configured. |
+| GET/PUT/PATCH | `/admin/settings` | Ordering (delivery fee, free-delivery threshold, minimum order, prep minutes, on/off switches) and the restaurant profile: `restaurant_name`, `contact_phone`, `contact_email`, `address_line1`, `address_line2`, `city`, `postal_code`, `instagram_url`, `facebook_url` (https links on instagram.com / facebook.com; null hides the icon). `maps_url`: Google Maps link (maps.app.goo.gl, goo.gl/maps or google.com/maps) opened by the website's Find us card; defaults to RESTAURANT_MAPS_URL / the restaurant's shared link, null makes the card a plain card. `maps_embed_url`: the src of Google Maps' "Embed a map" iframe (https://www.google.com/maps/embed?pb=…), shown in the Find us card; null shows the drawn street map. Opening hours moved to `/admin/opening-hours` (an `opening_hours` field sent here is ignored). `meta.integrations` says whether Cloudinary and PayHere are configured. |
 | POST/DELETE | `/admin/settings/logo` | Multipart `logo` (jpg/png/webp ≤ 2 MB) → Cloudinary, replacing the old one / remove it. |
 | GET | `/admin/opening-hours` | Weekly hours, `temporarily_closed`, `announcement`, live `status`, and every special date (upcoming first, then up to 50 past). |
 | PUT/PATCH | `/admin/opening-hours` | Any of `weekly` (seven `{day, closed, open: "HH:MM", close: "HH:MM"}`), `temporarily_closed` (bool), `announcement` (≤ 500 chars, null/"" clears). |
 | GET/POST | `/admin/opening-hours/special-dates` | List / add `{starts_on, ends_on?, closed, open?, close?, title, note?}` (`YYYY-MM-DD`; `ends_on` defaults to `starts_on`; ranges may not overlap, may not lie wholly in the past, ≤ 366 days). |
 | GET/PUT/PATCH/DELETE | `/admin/opening-hours/special-dates/{id}` | Show / update / delete. |
 
-`GET /restaurant` (public) now also returns `profile`: name, phone, email, address, opening hours (the weekly table), `social` ({instagram, facebook}) and logo URL. The storefront reads its contact section, footer, Find us card, mobile menu and cart phone number from it.
+`GET /restaurant` (public) now also returns `profile`: name, phone, email, address, opening hours (the weekly table), `social` ({instagram, facebook}), `maps_url`, `maps_embed_url` and logo URL. The storefront reads its contact section, footer, Find us card, mobile menu and cart phone number from it.
 
 Coupon `starts_at` / `expires_at` may carry an offset (`2026-12-31T23:59:00+05:30`); a time without one is read in the restaurant timezone. Both are stored in UTC.
 

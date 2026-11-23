@@ -5,6 +5,7 @@ import { SplitLines } from '../components/SplitLines'
 import { PRODUCTS_BY_ID, SIGNATURE_PRODUCT_ID } from '../data/products'
 import { useCartActions } from '../hooks/useCart'
 import { gsap, MOTION, ScrollTrigger, useGSAP } from '../lib/gsap'
+import { productSrcSet } from '../lib/productImage'
 import { revealLines, revealUp } from '../lib/reveal'
 import { formatPrice } from '../lib/utils'
 import './BurgerShowcase.css'
@@ -80,6 +81,9 @@ export function BurgerShowcase() {
 
         // The stand turns on its own, and spins up while the visitor scrolls past it.
         const spin = gsap.to(q('[data-anim="ring"]'), { rotation: 360, duration: 42, ease: 'none', repeat: -1, paused: true })
+        // The speed the spin is heading for. A new boost tween is only made when the scroll speed
+        // moves it noticeably, rather than on every scroll update (that was a tween per frame).
+        let target = 1
         ScrollTrigger.create({
           trigger: section,
           start: 'top bottom',
@@ -87,11 +91,14 @@ export function BurgerShowcase() {
           onToggle: (self) => (self.isActive ? spin.play() : spin.pause()),
           onUpdate: (self) => {
             const boost = gsap.utils.clamp(1, 7, 1 + Math.abs(self.getVelocity()) / 240)
+            if (Math.abs(boost - target) < 0.25) return
+            target = boost
             gsap.to(spin, {
               timeScale: boost,
               duration: 0.25,
               overwrite: true,
               onComplete: () => {
+                target = 1
                 gsap.to(spin, { timeScale: 1, duration: 1.6, ease: 'power2.out', overwrite: true })
               },
             })
@@ -174,7 +181,17 @@ export function BurgerShowcase() {
             <div className="plate" data-anim="plate" aria-hidden="true" />
             <div className="showcase-burger" data-anim="burger">
               <div className="h-full w-full" data-anim="tilt">
-                <img src={product.image} alt={product.imageAlt} width={1000} height={1000} loading="lazy" decoding="async" className="h-full w-full" />
+                <img
+                  src={product.image}
+                  srcSet={productSrcSet(product.image)}
+                  sizes="(min-width: 1024px) 46rem, 100vw"
+                  alt={product.imageAlt}
+                  width={1000}
+                  height={1000}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full"
+                />
               </div>
             </div>
             <div className="ring ring-front" aria-hidden="true">

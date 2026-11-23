@@ -95,6 +95,8 @@ class ReportsAndSettingsTest extends TestCase
             ->assertJsonPath('data.profile.phone', '+94 77 123 4567')
             ->assertJsonPath('data.profile.address.line1', '42 Galle Road')
             ->assertJsonPath('data.profile.social', ['instagram' => 'https://www.instagram.com/burgertheory', 'facebook' => null])
+            ->assertJsonPath('data.profile.maps_url', 'https://www.google.com/maps/search/?api=1&query=7.093917%2C80.318000')
+            ->assertJsonPath('data.profile.maps_embed_url', fn (string $url) => str_starts_with($url, 'https://www.google.com/maps/embed?pb='))
             ->assertJsonPath('data.profile.opening_hours.0', ['day' => 'monday', 'closed' => false, 'open' => '11:00', 'close' => '22:30'])
             ->assertJsonPath('data.delivery_fee', 40000);
         $this->getJson('/api/v1/opening-hours')->assertJsonPath('data.temporarily_closed', false);
@@ -103,8 +105,12 @@ class ReportsAndSettingsTest extends TestCase
             'contact_email' => 'not-an-email',
             'instagram_url' => 'https://evil.example/instagram.com',
             'facebook_url' => 'javascript:alert(1)',
+            'maps_url' => 'https://evil.example/maps',
+            'maps_embed_url' => 'https://www.google.com/maps/embed?pb=x"><script>',
         ], $headers)
-            ->assertUnprocessable()->assertJsonValidationErrors(['contact_email', 'instagram_url', 'facebook_url']);
+            ->assertUnprocessable()->assertJsonValidationErrors(['contact_email', 'instagram_url', 'facebook_url', 'maps_url', 'maps_embed_url']);
+        $this->patchJson('/api/v1/admin/settings', ['maps_url' => 'https://www.google.com/maps/place/Kegalle'], $headers)
+            ->assertOk()->assertJsonPath('data.maps_url', 'https://www.google.com/maps/place/Kegalle');
         $this->patchJson('/api/v1/admin/settings', ['instagram_url' => null, 'facebook_url' => 'https://facebook.com/burgertheory'], $headers)
             ->assertOk()->assertJsonPath('data.instagram_url', null)->assertJsonPath('data.facebook_url', 'https://facebook.com/burgertheory');
     }

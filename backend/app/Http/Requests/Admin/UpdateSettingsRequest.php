@@ -37,6 +37,10 @@ class UpdateSettingsRequest extends FormRequest
             'instagram_url' => ['sometimes', 'nullable', 'string', 'max:255', 'url:https', 'regex:#^https://([a-z0-9-]+\.)*instagram\.com(/|$)#i'],
             /** https link to the Facebook page; null hides the icon on the website. */
             'facebook_url' => ['sometimes', 'nullable', 'string', 'max:255', 'url:https', 'regex:#^https://([a-z0-9-]+\.)*(facebook|fb)\.com(/|$)#i'],
+            /** Google Maps share link (maps.app.goo.gl, goo.gl/maps or google.com/maps); null makes the Find us card plain. */
+            'maps_url' => ['sometimes', 'nullable', 'string', 'max:500', 'url:https', 'regex:#^https://(maps\.app\.goo\.gl/|goo\.gl/maps/|(www\.)?google\.[a-z.]{2,6}/maps|maps\.google\.[a-z.]{2,6}/)#i'],
+            /** The src of Google Maps' "Embed a map" iframe; null shows the drawn street map instead. */
+            'maps_embed_url' => ['sometimes', 'nullable', 'string', 'max:2000', 'url:https', 'regex:#^https://www\.google\.com/maps/embed\?pb=[^\s"\'<>]+$#'],
         ];
     }
 
@@ -45,6 +49,8 @@ class UpdateSettingsRequest extends FormRequest
         return [
             'instagram_url.regex' => 'Use a link to an instagram.com page.',
             'facebook_url.regex' => 'Use a link to a facebook.com page.',
+            'maps_embed_url.regex' => 'Use the src link from Google Maps’ “Embed a map” code (https://www.google.com/maps/embed?pb=…).',
+            'maps_url.regex' => 'Use a Google Maps link (maps.app.goo.gl or google.com/maps).',
         ];
     }
 }

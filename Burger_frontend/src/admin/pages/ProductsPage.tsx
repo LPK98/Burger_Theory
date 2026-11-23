@@ -92,7 +92,7 @@ export default function ProductsPage() {
       <Card>
         <div className="flex flex-wrap items-center gap-2 border-b border-rule p-4">
           <SearchInput className="w-full sm:w-64" label="Search products" placeholder="Search products" value={search} onChange={setSearch} />
-          <FilterSelect label="Category" value={f.category} onChange={(e) => set({ category: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-40">
+          <FilterSelect label="Category" value={f.category} onChange={(e) => set({ category: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-40">
             <option value="">All categories</option>
             {cats.data?.map((c) => (
               <option key={c.id} value={c.slug}>
@@ -100,12 +100,12 @@ export default function ProductsPage() {
               </option>
             ))}
           </FilterSelect>
-          <FilterSelect label="Availability" value={f.available} onChange={(e) => set({ available: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-48">
+          <FilterSelect label="Availability" value={f.available} onChange={(e) => set({ available: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-48">
             <option value="">On or off the menu</option>
             <option value="yes">On the menu</option>
             <option value="no">Hidden</option>
           </FilterSelect>
-          <FilterSelect label="Stock" value={f.stock} onChange={(e) => set({ stock: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-40">
+          <FilterSelect label="Stock" value={f.stock} onChange={(e) => set({ stock: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-40">
             <option value="">Any stock</option>
             <option value="in_stock">In stock</option>
             <option value="low_stock">Low stock</option>

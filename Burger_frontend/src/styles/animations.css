@@ -169,8 +169,9 @@
   position: relative;
 }
 
-.live-dot::after {
-  content: '';
+/* A real element rather than ::after: Chrome runs transform/opacity animations of elements on the
+   compositor, but animations of pseudo-elements cost a main-thread style recalc on every frame. */
+.live-halo {
   position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -192,7 +193,7 @@
     animation: none;
   }
 
-  .live-dot::after {
+  .live-halo {
     animation: none;
     opacity: 0;
   }

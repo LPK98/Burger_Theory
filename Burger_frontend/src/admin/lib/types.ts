@@ -427,6 +427,8 @@ export interface Settings {
   postal_code: string | null
   instagram_url: string | null
   facebook_url: string | null
+  maps_url: string | null
+  maps_embed_url: string | null
   logo_url: string | null
 }
 

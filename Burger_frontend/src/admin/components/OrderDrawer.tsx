@@ -298,7 +298,7 @@ export function OrderDrawer({ orderNumber, onClose }: { orderNumber: string | nu
                         </span>
                       </p>
                       <p className="text-xs text-dim">{dateTime(t.at)}</p>
-                      {t.note && <p className="mt-1 text-[0.8125rem] text-grey">“{t.note}”</p>}
+                      {t.note && <p className="mt-1 text-[0.9375rem] text-grey">“{t.note}”</p>}
                     </li>
                   ))}
                 </ol>

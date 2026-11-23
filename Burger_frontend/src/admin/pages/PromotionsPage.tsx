@@ -70,7 +70,7 @@ export default function PromotionsPage() {
       <Card>
         <div className="flex flex-wrap items-center gap-2 border-b border-rule p-4">
           <SearchInput className="w-full sm:w-64" label="Search codes" placeholder="Search codes" value={search} onChange={setSearch} />
-          <FilterSelect label="Switched on" value={f.active} onChange={(e) => set({ active: e.target.value })} className="w-full sm:w-44">
+          <FilterSelect label="Switched on" value={f.active} onChange={(e) => set({ active: e.target.value })} className="w-full sm:w-auto sm:min-w-44">
             <option value="">On and off</option>
             <option value="yes">Switched on</option>
             <option value="no">Switched off</option>
@@ -286,7 +286,7 @@ function CouponModal({ coupon, onClose }: { coupon: Coupon | 'new' | null; onClo
           <TextField label="Description" optional value={form.description} maxLength={255} onChange={(e) => update('description', e.target.value)} error={errors.description} placeholder="20% off on weekends" />
         </div>
         <div>
-          <p className="mb-1.5 text-[0.8125rem] font-medium text-bone/85">Discount</p>
+          <p className="mb-1.5 text-[0.9375rem] font-medium text-bone/85">Discount</p>
           <Segmented
             label="Discount type"
             value={form.discount_type}

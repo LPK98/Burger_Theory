@@ -101,7 +101,7 @@ export function HoursDialog() {
 
         <div className="mt-5 overflow-y-auto overscroll-contain px-6 pb-7 [scrollbar-color:var(--color-line)_transparent] [scrollbar-width:thin] sm:px-8" data-lenis-prevent>
           {data ? (
-            <HoursBody info={data} statusId={statusId} />
+            <HoursBody info={data} statusId={statusId} live={open} />
           ) : status === 'error' ? (
             <div className="border border-line bg-ink p-6 text-center">
               <p className="text-bone/80">We couldn’t load the opening hours just now.</p>
@@ -128,7 +128,7 @@ export function HoursDialog() {
   )
 }
 
-function HoursBody({ info, statusId }: { info: OpeningHoursInfo; statusId: string }) {
+function HoursBody({ info, statusId, live }: { info: OpeningHoursInfo; statusId: string; live: boolean }) {
   const copy = statusCopy(info)
   const reason = info.status.reason
   // The coming seven days by weekday, so each row of the regular week shows this week's real hours.
@@ -142,7 +142,7 @@ function HoursBody({ info, statusId }: { info: OpeningHoursInfo; statusId: strin
           className={cn('pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full blur-3xl', copy.tone === 'closed' ? 'bg-cream/[0.04]' : 'bg-ember/20')}
           aria-hidden="true"
         />
-        <StatusBadge copy={copy} />
+        <StatusBadge copy={copy} live={live} />
         <p className="display-sm mt-4 text-[1.65rem] text-cream sm:text-[1.9rem]">{copy.detail}</p>
         {reason && (
           <p className="mt-2 text-[0.98rem] leading-relaxed text-bone/70">

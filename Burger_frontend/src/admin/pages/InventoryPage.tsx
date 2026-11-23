@@ -100,7 +100,7 @@ function IngredientsTab({ f, set, onEdit, onAdjust }: { f: F; set: SetF; onEdit:
               aria-pressed={f.status === o.key}
               onClick={() => set({ status: o.key })}
               className={cn(
-                'h-8 rounded-full border px-3 text-[0.8125rem] transition-colors',
+                'h-8 rounded-full border px-3 text-[0.9375rem] transition-colors',
                 f.status === o.key ? 'border-ember/60 bg-ember/12 text-bone' : 'border-rule-strong text-grey hover:text-bone',
               )}
             >
@@ -109,7 +109,7 @@ function IngredientsTab({ f, set, onEdit, onAdjust }: { f: F; set: SetF; onEdit:
           ))}
         </div>
         <span className="flex-1" />
-        <FilterSelect label="Sort" value={f.sort} onChange={(e) => set({ sort: e.target.value })} className="w-full sm:w-48">
+        <FilterSelect label="Sort" value={f.sort} onChange={(e) => set({ sort: e.target.value })} className="w-full sm:w-auto sm:min-w-48">
           <option value="">Most urgent first</option>
           <option value="name">A to Z</option>
         </FilterSelect>
@@ -218,7 +218,7 @@ function HistoryTab({ f, set, page }: { f: F; set: SetF; page: number }) {
   return (
     <Card>
       <div className="flex flex-wrap items-end gap-2 border-b border-rule p-4">
-        <FilterSelect label="Ingredient" value={f.ingredient} onChange={(e) => set({ ingredient: e.target.value })} className="w-full sm:w-56">
+        <FilterSelect label="Ingredient" value={f.ingredient} onChange={(e) => set({ ingredient: e.target.value })} className="w-full sm:w-auto sm:min-w-56">
           <option value="">All ingredients</option>
           {all.data?.map((i) => (
             <option key={i.id} value={i.id}>
@@ -226,7 +226,7 @@ function HistoryTab({ f, set, page }: { f: F; set: SetF; page: number }) {
             </option>
           ))}
         </FilterSelect>
-        <FilterSelect label="Reason" value={f.reason} onChange={(e) => set({ reason: e.target.value })} className="w-full sm:w-48">
+        <FilterSelect label="Reason" value={f.reason} onChange={(e) => set({ reason: e.target.value })} className="w-full sm:w-auto sm:min-w-48">
           <option value="">Any reason</option>
           {(Object.keys(MOVEMENT_REASON_LABEL) as MovementReason[]).map((r) => (
             <option key={r} value={r}>
@@ -297,7 +297,7 @@ function ConsumptionTab({ f, set }: { f: F; set: SetF }) {
       <div className="flex flex-wrap items-end gap-2 border-b border-rule p-4">
         <TextField label="From" type="date" value={from} max={to} onChange={(e) => set({ from: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-40" />
         <TextField label="To" type="date" value={to} min={from} onChange={(e) => set({ to: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-40" />
-        <p className="pb-2.5 text-[0.8125rem] text-dim">Amounts are in each ingredient’s own unit.</p>
+        <p className="pb-2.5 text-[0.9375rem] text-dim">Amounts are in each ingredient’s own unit.</p>
       </div>
       {report.isError ? (
         <ErrorState message={errorMessage(report.error)} onRetry={() => report.refetch()} />

@@ -4,7 +4,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { cn } from '../../lib/utils'
 import { useConfirm, useToast } from '../components/overlay-context'
-import { Button, Card, CardHeader, ErrorState, Notice, Skeleton, Switch, TextField } from '../components/ui'
+import { Button, Card, CardHeader, ErrorState, Notice, Skeleton, Switch, TextArea, TextField } from '../components/ui'
 import { PageHeader } from '../layout'
 import { ApiError, errorMessage } from '../lib/api'
 import { settings as settingsApi } from '../lib/endpoints'
@@ -51,6 +51,8 @@ interface FormState {
   postal_code: string
   instagram_url: string
   facebook_url: string
+  maps_url: string
+  maps_embed_url: string
   accepting_orders: boolean
   delivery_enabled: boolean
   pickup_enabled: boolean
@@ -60,6 +62,13 @@ interface FormState {
   free_delivery_threshold: string
   minimum_order_amount: string
   estimated_preparation_minutes: string
+}
+
+/** Accepts Google's whole <iframe …> embed code or just its link, and returns the link. */
+function embedSrc(input: string): string {
+  const v = input.trim()
+  const src = /<iframe[^>]*\ssrc="([^"]+)"/i.exec(v)?.[1] ?? v
+  return src.replace(/&amp;/g, '&')
 }
 
 function toForm(s: Settings): FormState {
@@ -73,6 +82,8 @@ function toForm(s: Settings): FormState {
     postal_code: s.postal_code ?? '',
     instagram_url: s.instagram_url ?? '',
     facebook_url: s.facebook_url ?? '',
+    maps_url: s.maps_url ?? '',
+    maps_embed_url: s.maps_embed_url ?? '',
     accepting_orders: s.accepting_orders,
     delivery_enabled: s.delivery_enabled,
     pickup_enabled: s.pickup_enabled,
@@ -127,12 +138,17 @@ function SettingsForm({ response }: { response: SettingsResponse }) {
     if (!Number.isInteger(prep) || prep < 1 || prep > 600) found.estimated_preparation_minutes = 'Enter minutes between 1 and 600.'
     if (!form.delivery_enabled && !form.pickup_enabled) found.pickup_enabled = 'Keep delivery or pickup switched on, or customers can’t order.'
     // Same rule as the API: an https link on the network's own domain.
-    const link = (k: 'instagram_url' | 'facebook_url', host: RegExp, name: string) => {
+    const link = (k: 'instagram_url' | 'facebook_url' | 'maps_url', host: RegExp, name: string) => {
       const v = form[k].trim()
       if (v && !host.test(v)) found[k] = `Paste the full https:// link to the ${name} page.`
     }
     link('instagram_url', /^https:\/\/([a-z0-9-]+\.)*instagram\.com(\/|$)/i, 'Instagram')
     link('facebook_url', /^https:\/\/([a-z0-9-]+\.)*(facebook|fb)\.com(\/|$)/i, 'Facebook')
+    link('maps_url', /^https:\/\/(maps\.app\.goo\.gl\/|goo\.gl\/maps\/|(www\.)?google\.[a-z.]{2,6}\/maps|maps\.google\.[a-z.]{2,6}\/)/i, 'Google Maps')
+    const embed = embedSrc(form.maps_embed_url)
+    if (form.maps_embed_url.trim() && !/^https:\/\/www\.google\.com\/maps\/embed\?pb=[^\s"'<>]+$/.test(embed)) {
+      found.maps_embed_url = 'Paste the code from Google Maps → Share → Embed a map.'
+    }
     if (!form.cod_enabled && !form.payhere_enabled) found.cod_enabled = 'Keep at least one payment method switched on.'
     setErrors(found)
     if (Object.keys(found).length) return toast.error('Check the highlighted fields.')
@@ -147,6 +163,8 @@ function SettingsForm({ response }: { response: SettingsResponse }) {
       postal_code: form.postal_code.trim() || null,
       instagram_url: form.instagram_url.trim() || null,
       facebook_url: form.facebook_url.trim() || null,
+      maps_url: form.maps_url.trim() || null,
+      maps_embed_url: embedSrc(form.maps_embed_url) || null,
       accepting_orders: form.accepting_orders,
       delivery_enabled: form.delivery_enabled,
       pickup_enabled: form.pickup_enabled,
@@ -176,6 +194,18 @@ function SettingsForm({ response }: { response: SettingsResponse }) {
             <TextField label="Postal code" optional value={form.postal_code} onChange={(e) => update('postal_code', e.target.value)} error={errors.postal_code} />
             <TextField label="Instagram" optional type="url" inputMode="url" value={form.instagram_url} maxLength={255} onChange={(e) => update('instagram_url', e.target.value)} error={errors.instagram_url} placeholder="https://www.instagram.com/burgertheory" />
             <TextField label="Facebook" optional type="url" inputMode="url" value={form.facebook_url} maxLength={255} onChange={(e) => update('facebook_url', e.target.value)} error={errors.facebook_url} placeholder="https://www.facebook.com/burgertheory" />
+            <TextField label="Google Maps link" optional className="sm:col-span-2" type="url" inputMode="url" value={form.maps_url} maxLength={500} onChange={(e) => update('maps_url', e.target.value)} error={errors.maps_url} placeholder="https://maps.app.goo.gl/…" hint="The website’s Find us card opens this. In Google Maps, open the restaurant’s pin, tap Share and copy the link." />
+            <TextArea
+              label="Embedded map"
+              optional
+              className="sm:col-span-2"
+              rows={3}
+              value={form.maps_embed_url}
+              onChange={(e) => update('maps_embed_url', e.target.value)}
+              error={errors.maps_embed_url}
+              placeholder="<iframe src=&quot;https://www.google.com/maps/embed?pb=…&quot; …></iframe>"
+              hint="Shown in the Find us card. In Google Maps: Share → Embed a map → Copy HTML, and paste it here (the whole code or just its link). Blank shows the drawn street map."
+            />
           </div>
         </Card>
         <LogoCard logoUrl={response.data.logo_url} cloudinary={integrations.cloudinary} />
@@ -188,7 +218,7 @@ function SettingsForm({ response }: { response: SettingsResponse }) {
             <Switch checked={form.accepting_orders} onChange={(v) => update('accepting_orders', v)} label="Taking orders" description="Switch off to pause online ordering, e.g. when the kitchen is full." />
             <Switch checked={form.delivery_enabled} onChange={(v) => update('delivery_enabled', v)} label="Delivery" />
             <Switch checked={form.pickup_enabled} onChange={(v) => update('pickup_enabled', v)} label="Pickup" />
-            {errors.pickup_enabled && <p className="text-[0.8125rem] text-[#ff8a83]">{errors.pickup_enabled}</p>}
+            {errors.pickup_enabled && <p className="text-[0.9375rem] text-[#ff8a83]">{errors.pickup_enabled}</p>}
             <div className="grid gap-4 border-t border-rule pt-5 sm:grid-cols-2">
               <TextField label="Delivery charge" prefix="Rs" inputMode="decimal" value={form.delivery_fee} onChange={(e) => update('delivery_fee', e.target.value)} error={errors.delivery_fee} />
               <TextField label="Free delivery from" optional prefix="Rs" inputMode="decimal" value={form.free_delivery_threshold} onChange={(e) => update('free_delivery_threshold', e.target.value)} error={errors.free_delivery_threshold} hint="Order total after discounts. Blank means never free." />
@@ -208,7 +238,7 @@ function SettingsForm({ response }: { response: SettingsResponse }) {
               label="PayHere card payments"
               description={integrations.payhere ? `Connected${integrations.payhere_sandbox ? ' to the sandbox (test payments)' : ' to the live account'}.` : 'Not connected: customers won’t see it until PAYHERE_MERCHANT_ID and PAYHERE_MERCHANT_SECRET are set on the server.'}
             />
-            {errors.cod_enabled && <p className="text-[0.8125rem] text-[#ff8a83]">{errors.cod_enabled}</p>}
+            {errors.cod_enabled && <p className="text-[0.9375rem] text-[#ff8a83]">{errors.cod_enabled}</p>}
             <div className="space-y-2 border-t border-rule pt-5 text-sm">
               <p className="text-xs font-medium text-dim">Server connections</p>
               <Integration ok={integrations.payhere} label="PayHere" detail={integrations.payhere ? (integrations.payhere_sandbox ? 'Sandbox' : 'Live') : 'Not configured'} />
@@ -311,7 +341,7 @@ function LogoCard({ logoUrl, cloudinary }: { logoUrl: string | null; cloudinary:
             </Button>
           )}
         </div>
-        {!cloudinary && <p className="text-[0.8125rem] text-dim">Uploads need Cloudinary credentials in the backend’s .env file.</p>}
+        {!cloudinary && <p className="text-[0.9375rem] text-dim">Uploads need Cloudinary credentials in the backend’s .env file.</p>}
       </div>
     </Card>
   )

@@ -232,6 +232,12 @@
   background: rgba(244, 233, 216, 0.16);
 }
 
+/* Paused whenever the cue can't be seen: the headline has scrolled away or the scene is off screen. */
+.scene[data-hero-gone] .cue-line,
+.scene[data-offscreen] .cue-line {
+  animation-play-state: paused;
+}
+
 .cue-line {
   position: absolute;
   inset: 0 0 auto;
@@ -347,6 +353,9 @@
   position: absolute;
   top: calc(var(--ay) * 1%);
   width: min(21rem, calc((100vw - var(--box)) / 2 - 5.5rem));
+  /* Performance: the story fades and slides captions on every scrolled frame; on their own
+     layers that is compositor work instead of a repaint of the whole scene. */
+  will-change: transform, opacity;
 }
 
 .scene-caption[data-side='right'] {
@@ -389,6 +398,7 @@
   top: 0;
   height: 1px;
   background: rgba(240, 120, 50, 0.85);
+  will-change: transform;
 }
 
 .caption-leader::after {
@@ -451,6 +461,8 @@
   background: var(--color-ember);
   transform-origin: 0 50%;
   transform: scaleX(0);
+  /* Performance: set on every timeline update; composited, so it never triggers a repaint. */
+  will-change: transform;
 }
 
 .scene-rail ol {

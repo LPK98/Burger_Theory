@@ -53,7 +53,7 @@ Legend: `[x]` in place (placeholder or final) · `[ ]` still needed for producti
 
 **Used by:** menu cards, the cart drawer and the showcase stand.
 **Location:** `public/images/products/` (file names match the product `id` in `src/data/products.ts`).
-**Currently:** generated SVG composites built from the same ingredient art.
+**Currently:** generated SVG composites built from the same ingredient art, served as WebP renders of them (`<id>-800.webp` and `<id>-1600.webp`, picked by `srcset`). The SVGs carry 14–27 blur/noise filters each, which made the browser re-parse and re-rasterise them mid-scroll; the WebPs look the same (≈1/255 average pixel difference) and cost a fraction. After `npm run art` changes the illustrations, run `node scripts/rasterize-products.mjs` to refresh the WebPs (needs Playwright's Chromium, see the script).
 
 - [x] `theory-classic` (also the showcase hero; render it at 2000 px if you can)
 - [x] `double-trouble`
@@ -69,7 +69,7 @@ Legend: `[x]` in place (placeholder or final) · `[ ]` still needed for producti
 - Transparent background, 1200 × 1200 px WebP with alpha, same camera angle as the layers.
 - Every burger stands on the same table line at about 88% of the canvas height, and is about 70% of the canvas wide. Following this lets every card crop identically.
 - Leave a little air above the tallest burger (the Ultimate Stack).
-- After swapping, update `image` in `src/data/products.ts` if the extension changes.
+- After swapping, update `image` in `src/data/products.ts`. Name real photos `<id>-800.webp` and `<id>-1600.webp` and the `srcset` keeps working (`src/lib/productImage.ts`).
 
 ---
 

@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import type { Product } from '../data/products'
 import { useCart, useCartActions } from '../hooks/useCart'
 import { flyToCart } from '../lib/flyToCart'
+import { productSrcSet } from '../lib/productImage'
 import { cn, formatPrice } from '../lib/utils'
 import { Button } from './Button'
 import { QuantityStepper } from './QuantityStepper'
@@ -60,6 +61,8 @@ export function ProductCard({ product, className }: { product: Product; classNam
         <img
           ref={imageRef}
           src={product.image}
+          srcSet={productSrcSet(product.image)}
+          sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw"
           alt={product.imageAlt}
           width={1000}
           height={1000}

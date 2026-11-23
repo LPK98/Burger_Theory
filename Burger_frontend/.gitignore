@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist*
 *.local
 
 # Environment files (only .env.example is committed; never put secrets in VITE_* variables)

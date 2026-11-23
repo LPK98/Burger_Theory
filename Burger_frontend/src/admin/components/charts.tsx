@@ -51,7 +51,7 @@ function niceTicks(max: number, count = 4): number[] {
 }
 
 /** Every nth label so they never collide. */
-function labelEvery(n: number, width: number, minGap = 64) {
+function labelEvery(n: number, width: number, minGap = 76) {
   const fit = Math.max(1, Math.floor(width / minGap))
   return Math.max(1, Math.ceil(n / fit))
 }
@@ -170,14 +170,15 @@ export function AreaChart({ points, height = 260, formatValue, formatAxis, label
           {geometry.ticks.map((t) => (
             <g key={t}>
               <line x1={PAD.left} x2={width - PAD.right} y1={geometry.y(t)} y2={geometry.y(t)} stroke={t === 0 ? AXIS : GRID} />
-              <text x={PAD.left - 10} y={geometry.y(t)} dy="0.32em" textAnchor="end" className="fill-dim text-[11px] tabular">
+              <text x={PAD.left - 10} y={geometry.y(t)} dy="0.32em" textAnchor="end" className="fill-dim text-[13px] tabular">
                 {formatAxis(t)}
               </text>
             </g>
           ))}
           {points.map((p, i) =>
-            (i % every === 0 && last - i >= every / 2) || i === last ? (
-              <text key={p.key} x={geometry.x(i)} y={height - 8} textAnchor={i === 0 ? 'start' : i === last ? 'end' : 'middle'} className="fill-dim text-[11px]">
+            // The last label is right-aligned, so the one before it needs a full step of room.
+            (i % every === 0 && last - i >= every) || i === last ? (
+              <text key={p.key} x={geometry.x(i)} y={height - 8} textAnchor={i === 0 ? 'start' : i === last ? 'end' : 'middle'} className="fill-dim text-[13px]">
                 {p.label}
               </text>
             ) : null,
@@ -211,7 +212,7 @@ export function ColumnChart({ points, height = 240, formatValue, formatAxis, lab
   const band = points.length ? innerW / points.length : 0
   const barW = Math.max(2, Math.min(24, band - 2))
   const y = (v: number) => PAD.top + innerH - (v / top) * innerH
-  const every = labelEvery(points.length, innerW, 56)
+  const every = labelEvery(points.length, innerW, 64)
   const current = active !== null ? points[active] : null
   const cx = (i: number) => PAD.left + band * i + band / 2
 
@@ -223,7 +224,7 @@ export function ColumnChart({ points, height = 240, formatValue, formatAxis, lab
           {ticks.map((t) => (
             <g key={t}>
               <line x1={PAD.left} x2={width - PAD.right} y1={y(t)} y2={y(t)} stroke={t === 0 ? AXIS : GRID} />
-              <text x={PAD.left - 10} y={y(t)} dy="0.32em" textAnchor="end" className="fill-dim text-[11px] tabular">
+              <text x={PAD.left - 10} y={y(t)} dy="0.32em" textAnchor="end" className="fill-dim text-[13px] tabular">
                 {formatAxis(t)}
               </text>
             </g>
@@ -244,7 +245,7 @@ export function ColumnChart({ points, height = 240, formatValue, formatAxis, lab
                   />
                 )}
                 {((i % every === 0 && points.length - 1 - i >= every / 2) || i === points.length - 1) && (
-                  <text x={cx(i)} y={height - 8} textAnchor="middle" className="fill-dim text-[11px]">
+                  <text x={cx(i)} y={height - 8} textAnchor="middle" className="fill-dim text-[13px]">
                     {p.label}
                   </text>
                 )}

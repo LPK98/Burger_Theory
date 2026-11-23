@@ -1,4 +1,4 @@
-import { MapPin } from 'lucide-react'
+import { ArrowUpRight, MapPin } from 'lucide-react'
 import { useRef } from 'react'
 import { HoursCard } from '../components/HoursCard'
 import { SplitLines } from '../components/SplitLines'
@@ -115,17 +115,7 @@ export function Restaurant() {
             frame="aspect-[3/4]"
             sizes="(min-width: 1024px) 38vw, 100vw"
           />
-          <div data-card className="border border-line bg-ink p-7 lg:p-8">
-            <div className="flex items-center gap-3">
-              <MapPin className="h-5 w-5 text-ember" aria-hidden="true" />
-              <h3 className="display text-[2.4rem] text-cream">Find us</h3>
-            </div>
-            <div className="mt-6 overflow-hidden rounded-[3px] border border-line">
-              <StreetSketch />
-            </div>
-            <FindUsAddress />
-            <p className="mt-3 text-sm text-ash">Location shown is a placeholder until the restaurant address is confirmed.</p>
-          </div>
+          <FindUsCard />
         </div>
 
         <Photo
@@ -140,16 +130,73 @@ export function Restaurant() {
   )
 }
 
-/** The address set in the admin portal (Settings). */
-function FindUsAddress() {
+/**
+ * Google's map tiles are light; this turns them into a dark map that keeps the hues (the red pin
+ * stays red), so it sits in the black card. The hover state lifts it a little.
+ */
+const MAP_TONE =
+  '[filter:invert(0.9)_hue-rotate(180deg)_saturate(0.6)_brightness(0.92)_contrast(0.9)] group-hover:[filter:invert(0.9)_hue-rotate(180deg)_saturate(0.8)_brightness(1.08)_contrast(0.95)]'
+
+/**
+ * The Find us card: the embedded Google map and the address, both set in the admin portal
+ * (Settings). With a Google Maps link set, a link laid over the whole card opens it in a new
+ * tab (an iframe can't sit inside a link), and the map underneath is for looking at only.
+ * Without an embed it falls back to the drawn street map. Same frame as the Hours card.
+ */
+function FindUsCard() {
   const { profile, status } = useRestaurantProfile()
-  if (!profile) return status === 'error' ? null : <TextSkeleton className="mt-7 block w-48" />
-  const { street, area } = addressLines(profile.address)
+  const mapsUrl = profile?.maps_url ?? null
+  const embedUrl = profile?.maps_embed_url ?? null
+  const { street, area } = profile ? addressLines(profile.address) : { street: '', area: '' }
+  const place = [street, area].filter(Boolean).join(', ')
+
   return (
-    <address className="mt-6 not-italic leading-relaxed text-cream">
-      {street}
-      {street && area && <br />}
-      <span className="text-bone/70">{area}</span>
-    </address>
+    <div data-card className={cn('relative border border-line bg-ink p-7 lg:p-8', mapsUrl && 'group transition-colors duration-500 hover:border-ember/45')}>
+      <div className="flex items-center gap-3">
+        <MapPin className="h-5 w-5 text-ember" aria-hidden="true" />
+        <h3 className="display text-[2.4rem] text-cream">Find us</h3>
+      </div>
+      <div className="mt-6 aspect-[2/1] overflow-hidden rounded-[3px] border border-line bg-char transition-[border-color,box-shadow] duration-500 group-hover:border-ember/50 group-hover:shadow-[0_0_44px_-10px_rgba(240,120,50,0.55)]">
+        {embedUrl ? (
+          <iframe
+            src={embedUrl}
+            title={`Map of ${place || 'the restaurant'}`}
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+            // Under the card link the map is a picture; on its own it can be panned and zoomed.
+            tabIndex={mapsUrl ? -1 : undefined}
+            className={cn('h-full w-full border-0 transition-[filter] duration-500', MAP_TONE, mapsUrl && 'pointer-events-none')}
+          />
+        ) : profile || status === 'error' ? (
+          <div className="transition-[filter] duration-500 group-hover:brightness-[1.18]">
+            <StreetSketch />
+          </div>
+        ) : null}
+      </div>
+      {profile ? (
+        <address className="mt-6 not-italic leading-relaxed text-cream">
+          {street}
+          {street && area && <br />}
+          <span className="text-bone/70">{area}</span>
+        </address>
+      ) : status === 'error' ? null : (
+        <TextSkeleton className="mt-7 block w-48" />
+      )}
+      {mapsUrl && (
+        <>
+          <p className="ui mt-4 inline-flex items-center gap-1 text-sm text-ember" aria-hidden="true">
+            View on Google Maps
+            <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          </p>
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Find us on Google Maps${place ? `: ${place}` : ''} (opens in a new tab)`}
+            className="absolute inset-0 z-10 cursor-pointer"
+          />
+        </>
+      )}
+    </div>
   )
 }

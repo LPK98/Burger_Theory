@@ -42,6 +42,8 @@ class RestaurantSettings
         'postal_code' => 'nullable_string',
         'instagram_url' => 'nullable_string',
         'facebook_url' => 'nullable_string',
+        'maps_url' => 'nullable_string',
+        'maps_embed_url' => 'nullable_string',
         // Opening hours (the weekly hours and special dates have their own tables; see
         // App\Services\Hours\OpeningHoursService). Written only through /admin/opening-hours.
         'temporarily_closed' => 'bool',
@@ -125,6 +127,10 @@ class RestaurantSettings
                 'instagram' => $s['instagram_url'],
                 'facebook' => $s['facebook_url'],
             ],
+            /** Google Maps link for the restaurant; the website's Find us card opens it. */
+            'maps_url' => $s['maps_url'],
+            /** Google Maps embed (iframe src) shown in the Find us card; null shows the drawn street map. */
+            'maps_embed_url' => $s['maps_embed_url'],
             'logo_url' => $s['logo_url'],
         ];
     }

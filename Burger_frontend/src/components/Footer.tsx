@@ -108,8 +108,9 @@ export function Footer() {
 
 /** The week from the API, grouped, plus a live status line that opens the full schedule. */
 function FooterHours() {
-  const { data } = useOpeningHours()
-  if (!data) return <div className="mt-5 h-[4.5rem] animate-pulse rounded-[2px] bg-cream/[0.04]" aria-hidden="true" />
+  const { data, status } = useOpeningHours()
+  // On an API error the skeleton goes (instead of pulsing forever); the dialog offers a retry.
+  if (!data) return status === 'error' ? null : <div className="mt-5 h-[4.5rem] animate-pulse rounded-[2px] bg-cream/[0.04]" aria-hidden="true" />
   const copy = statusCopy(data)
   return (
     <>

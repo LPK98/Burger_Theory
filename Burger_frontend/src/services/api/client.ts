@@ -342,7 +342,7 @@ export function toStorefrontProduct(p: Product) {
     name: p.name,
     description: p.description ?? '',
     price: p.price,
-    image: p.image?.url ?? `/images/products/${p.slug}.svg`,
+    image: p.image?.url ?? `/images/products/${p.slug}-800.webp`,
     imageAlt: p.image?.alt ?? p.name,
     categories: p.categories.map((c) => c.slug) as ('beef' | 'chicken' | 'spicy' | 'plant')[],
     badge: (p.badge ?? undefined) as 'Signature' | 'Hot' | 'Plant-based' | 'For two' | undefined,

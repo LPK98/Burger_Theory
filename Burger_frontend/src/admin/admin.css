@@ -31,6 +31,14 @@
 
   --font-sans: 'Anybody Variable', system-ui, sans-serif;
 
+  /* Text two steps larger than Tailwind's defaults, for readability (xs 14px, sm 16px, base 18px).
+     Small headings move up with it; page titles keep their sizes. Layout and spacing are unchanged. */
+  --text-xs: 0.875rem;
+  --text-sm: 1rem;
+  --text-base: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.375rem;
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -45,7 +53,7 @@
 
   body {
     font-family: var(--font-sans);
-    font-size: 0.875rem;
+    font-size: 1rem;
     line-height: 1.5;
     font-variation-settings: 'wdth' 100;
     min-height: 100dvh;

@@ -61,6 +61,10 @@ return [
         'postal_code' => null,
         'instagram_url' => null,
         'facebook_url' => null,
+        // Google Maps link opened by the website's Find us card, and the embedded map shown in it
+        // (both editable in the admin portal). The restaurant is at 7°05'38.1"N 80°19'04.8"E.
+        'maps_url' => env('RESTAURANT_MAPS_URL', 'https://www.google.com/maps/search/?api=1&query=7.093917%2C80.318000'),
+        'maps_embed_url' => env('RESTAURANT_MAPS_EMBED_URL', 'https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3959.276522186571!2d80.31542397475873!3d7.093912092909208!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zN8KwMDUnMzguMSJOIDgwwrAxOScwNC44IkU!5e0!3m2!1sen!2slk!4v1795434666594!5m2!1sen!2slk'),
         // Opening hours: the week and special dates live in their own tables (admin portal → Opening hours).
         'temporarily_closed' => false,
         'hours_announcement' => null,

@@ -50,6 +50,15 @@
   inset: 0;
 }
 
+/*
+  Performance: the ring turns inside a parent squashed to scaleY(0.25), so its on-screen scale
+  changes as it rotates and Chrome would re-rasterize the ring (an SVG with curved text) every
+  frame. A fixed raster scale lets the compositor just rotate the texture it already has.
+*/
+.ring-spin {
+  will-change: transform;
+}
+
 .ring-back {
   z-index: 1;
   clip-path: inset(0 0 50% 0);
@@ -99,6 +108,9 @@
   );
   filter: blur(14px);
   mask-image: linear-gradient(to bottom, #000 35%, transparent 98%);
+  /* Performance: scroll scrubs this cone's scaleY and opacity. On its own layer the blurred,
+     masked gradient is drawn once and the compositor scales and fades it. */
+  will-change: transform, opacity;
 }
 
 @media (max-width: 1023.98px) {

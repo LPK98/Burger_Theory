@@ -36,7 +36,7 @@ export default function PaymentsPage() {
           { label: 'Needs attention', value: s && count(s.needs_attention), sub: 'Refunds owed or chargebacks', alert: !!s && s.needs_attention > 0 },
         ].map((t) => (
           <Card key={t.label} className={cn('p-5', t.alert && 'border-serious/40')}>
-            <p className="text-[0.8125rem] text-grey">{t.label}</p>
+            <p className="text-[0.9375rem] text-grey">{t.label}</p>
             {t.value ? <p className="mt-2 text-2xl font-semibold text-bone">{t.value}</p> : <Skeleton className="mt-2 h-7 w-24" />}
             <p className="mt-1.5 text-xs text-dim">{t.sub}</p>
           </Card>
@@ -47,7 +47,7 @@ export default function PaymentsPage() {
       <Card>
         <div className="flex flex-wrap items-end gap-2 border-b border-rule p-4">
           <SearchInput className="w-full sm:w-72" label="Search payments" placeholder="Reference, order, customer or PayHere ID" value={search} onChange={setSearch} />
-          <FilterSelect label="Method" value={f.method} onChange={(e) => set({ method: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-44">
+          <FilterSelect label="Method" value={f.method} onChange={(e) => set({ method: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-44">
             <option value="">Any method</option>
             {(Object.keys(PAYMENT_METHOD_LABEL) as PaymentMethod[]).map((m) => (
               <option key={m} value={m}>
@@ -55,7 +55,7 @@ export default function PaymentsPage() {
               </option>
             ))}
           </FilterSelect>
-          <FilterSelect label="Status" value={f.status} onChange={(e) => set({ status: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-44">
+          <FilterSelect label="Status" value={f.status} onChange={(e) => set({ status: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-44">
             <option value="">Any status</option>
             {(Object.keys(PAYMENT_STATUS_LABEL) as PaymentStatus[]).map((st) => (
               <option key={st} value={st}>

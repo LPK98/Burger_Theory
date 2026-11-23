@@ -134,7 +134,7 @@ export function Navbar() {
           </a>
 
           <nav ref={nav} aria-label="Main" className="relative col-start-2 hidden lg:block" data-nav-in>
-            <ul className="flex items-center gap-9">
+            <ul className="flex items-center gap-9 xl:gap-10">
               {NAV_LINKS.map((link) => {
                 const isActive = active === link.id
                 return (
@@ -144,7 +144,7 @@ export function Navbar() {
                       onClick={onLink(link.id)}
                       aria-current={isActive ? 'true' : undefined}
                       className={cn(
-                        'group ui inline-flex py-3 text-[0.75rem] uppercase tracking-[0.15em] transition-colors duration-300',
+                        'group ui inline-flex py-3 text-[0.99rem] uppercase tracking-[0.15em] transition-colors duration-300',
                         isActive ? 'text-cream' : 'text-cream/60 hover:text-cream',
                       )}
                     >
@@ -188,7 +188,7 @@ export function Navbar() {
               </span>
             </button>
             <div className="ml-1 hidden sm:block" data-nav-in>
-              <Button size="sm" shape="pill" onClick={() => goTo('menu')}>
+              <Button size="sm" className="h-11 px-5" onClick={() => goTo('menu')}>
                 Order now
               </Button>
             </div>
