@@ -2,7 +2,9 @@ import { useEffect, useMemo, useReducer, type ReactNode } from 'react'
 import { PRODUCTS_BY_ID } from '../data/products'
 import { CartActionsContext, CartStateContext, MAX_QUANTITY, type CartActionsValue, type CartLine, type CartStateValue } from './cart-store'
 
-const STORAGE_KEY = 'bun-theory:cart:v1'
+const STORAGE_KEY = 'burger-theory:cart:v1'
+/** Key used before the rename to Burger Theory; read once so saved carts carry over. */
+const LEGACY_STORAGE_KEY = 'bun-theory:cart:v1'
 
 interface CartState {
   lines: CartLine[]
@@ -49,7 +51,7 @@ function reducer(state: CartState, action: CartAction): CartState {
 /** Restores a saved cart, dropping anything that no longer matches the menu. */
 function loadLines(): CartLine[] {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
+    const raw = window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_STORAGE_KEY)
     if (!raw) return []
     const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
@@ -75,6 +77,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.lines))
+      window.localStorage.removeItem(LEGACY_STORAGE_KEY)
     } catch {
       // Storage can be unavailable (private mode, quota). The cart still works for this visit.
     }

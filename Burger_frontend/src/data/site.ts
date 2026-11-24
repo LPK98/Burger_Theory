@@ -3,7 +3,7 @@
  * replace it with the real restaurant's information before launch.
  */
 export const SITE = {
-  name: 'Bun Theory',
+  name: 'Burger Theory',
   tagline: 'Not just a burger. An experience.',
   locale: 'en-US',
   currency: 'USD',

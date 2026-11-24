@@ -126,7 +126,7 @@ export function Navbar() {
           <a
             href="#home"
             onClick={onLink('home')}
-            aria-label="Bun Theory, back to the top"
+            aria-label="Burger Theory, back to the top"
             className="logo-link col-start-1 justify-self-start rounded-sm"
             data-nav-in
           >

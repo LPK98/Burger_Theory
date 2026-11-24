@@ -48,7 +48,7 @@ function LiveMap() {
     <div className="relative z-10 mt-6 aspect-[4/3] overflow-hidden sm:aspect-[2/1] rounded-[3px] border border-line bg-[#101010]">
       <iframe
         src={MAPS_EMBED_URL}
-        title="Map showing Bun Theory's location"
+        title="Map showing Burger Theory's location"
         loading="lazy"
         allowFullScreen
         referrerPolicy="strict-origin-when-cross-origin"
@@ -135,7 +135,7 @@ export function Restaurant() {
                   className="uppercase focus-visible:outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-ember"
                 >
                   Find us
-                  <span className="sr-only">: open Bun Theory in Google Maps (new tab)</span>
+                  <span className="sr-only">: open Burger Theory in Google Maps (new tab)</span>
                 </a>
               </h3>
             </div>

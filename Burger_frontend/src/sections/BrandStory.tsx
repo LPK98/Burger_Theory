@@ -109,7 +109,7 @@ export function BrandStory() {
           <SplitLines as="h2" id="story-title" lines={['Good food.', 'No shortcuts.']} className="display text-[clamp(3.4rem,7vw,6.8rem)]" />
           <div className="mt-10 space-y-5 text-[1.22rem] leading-[1.65] text-ink/80">
             <p data-reveal>
-              We started Bun Theory with one rule: if it can be made in our kitchen, it is made in our kitchen. The beef is ground from whole
+              We started Burger Theory with one rule: if it can be made in our kitchen, it is made in our kitchen. The beef is ground from whole
               chuck and brisket every morning. The brioche leaves the oven before sunrise. The pickles sit in brine for five days, and the sauce
               recipe lives on a single index card.
             </p>
