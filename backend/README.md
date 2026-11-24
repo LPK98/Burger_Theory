@@ -1,6 +1,6 @@
 # Burger Theory API
 
-The ordering backend for the Burger Theory storefront (`../Burger_frontend`): menu, cart, checkout, PayHere and cash-on-delivery payments, order tracking, and admin management.
+The ordering backend for the Burger Theory storefront (`../Burger_frontend`): menu, cart, checkout, Stripe, PayHere and cash-on-delivery payments, order tracking, and admin management.
 
 Laravel 13 · PHP 8.3+ (developed on 8.5) · PostgreSQL 18 · Sanctum tokens · REST under `/api/v1`.
 
@@ -79,7 +79,7 @@ app/
 
 ### Money
 
-Columns are `NUMERIC(10,2)` in LKR. In PHP and in every API payload, money is an integer number of cents, so `145000` means LKR 1,450.00. This is the same convention the storefront already uses for `Product.price`. Prices and totals are always calculated on the server from the `products` table. A client cannot send a price that the API will use.
+The restaurant trades in **USD** (`config/restaurant.php` → `currency`). Columns are `NUMERIC(10,2)` dollars. In PHP and in every API payload, money is an integer number of cents, so `1450` means $14.50. (Until 2026-11-26 the API used LKR; migration `2026_11_26_100100_switch_currency_to_usd` re-priced the catalogue to match the storefront menu, dividing stored amounts by 100, and refuses to run while LKR orders exist.) This is the same convention the storefront already uses for `Product.price`. Prices and totals are always calculated on the server from the `products` table. A client cannot send a price that the API will use.
 
 ### Database
 
@@ -91,7 +91,7 @@ PostgreSQL with foreign keys, CHECK constraints and partial unique indexes doing
 | An order line total equals unit price × quantity | `order_items_line_total_check` |
 | Stock never goes negative | `products_stock_quantity_check`, `inventory_logs_change_check` |
 | An order is never paid twice | `payments_one_paid_per_order` (unique index where `status = 'paid'`) |
-| A PayHere `payment_id` is recorded once | `payments_method_provider_payment_id_unique` |
+| A PayHere `payment_id` / Stripe PaymentIntent is recorded once; a Stripe Checkout Session belongs to one payment | `payments_method_provider_payment_id_unique`, `payments_provider_checkout_id_unique` |
 | One cart per customer, one default address, one primary image per product, one review per customer and product | unique and partial unique indexes |
 | Roles, statuses, methods and coupon types only take known values | CHECK constraints |
 
@@ -128,11 +128,19 @@ pending → rejected          any state before delivered → cancelled
 ```
 
 - Customers can cancel only while an order is `pending` and unpaid.
-- A PayHere order cannot be confirmed until its payment is verified.
-- Cancelling or rejecting an order returns its stock and its coupon use, and voids pending payments. If the order was already paid, the payment is marked `refund_required` (refunds are issued from the PayHere merchant portal).
+- An online (Stripe or PayHere) order cannot be confirmed until its payment is verified.
+- Cancelling or rejecting an order returns its stock and its coupon use, and voids pending payments. If the order was already paid, the payment is marked `refund_required` (refunds are issued from the Stripe Dashboard or the PayHere merchant portal). Cancelling a Stripe order also expires its open Checkout Session.
 - Online orders still unpaid after `ORDER_UNPAID_EXPIRY_MINUTES` (default 60) are cancelled by the scheduler, and their stock is released.
 
 ### Payments
+
+**Stripe** ([Checkout Sessions](https://docs.stripe.com/payments/checkout), hosted page; card data never reaches this server):
+
+1. `POST /api/v1/payments/stripe {order_number}` creates a Checkout Session for the server-priced total (one line item, `client_reference_id` = payment reference, order number in `metadata`) and returns its `url`. The idempotency key is built from the payment reference and the planned expiry stored on the row, so retries and concurrent clicks get the same session. While a session is open it is reused; an expired one opens a new attempt (`BT-…-2`).
+2. The browser goes to Stripe. Stripe sends it back to `STRIPE_SUCCESS_URL` / `STRIPE_CANCEL_URL` with `?order=<number>`; that redirect proves nothing.
+3. `POST /api/v1/payments/stripe/webhook` verifies the `Stripe-Signature` header against `STRIPE_WEBHOOK_SECRET` (400 if it fails, 503 if the secret is not set) and handles `checkout.session.completed`, `checkout.session.async_payment_succeeded` / `_failed`, `checkout.session.expired` and `charge.dispute.created` (→ `charged_back`). A session only settles the payment whose stored session id it matches, and only if `amount_total` and `currency` equal what was requested. Re-delivered events (same `evt_` id) are skipped.
+4. `POST /api/v1/payments/stripe/confirm {order_number}` (return page) retrieves the order's latest session from Stripe by its stored id and applies it through the same code path, so the order updates even before the webhook (and in local development without one).
+5. Both paths use `PaymentSettlement`, the state machine shared with PayHere, and log to `payment_events` (a summary, never the raw body).
 
 **PayHere** ([Checkout API](https://support.payhere.lk/api-&-mobile-sdk/checkout-api)):
 
@@ -156,7 +164,7 @@ A failed or cancelled payment can be retried. Each attempt gets its own PayHere 
 
 ### Revenue
 
-Revenue counts orders with `payment_status = paid` (a verified PayHere payment, or COD collected) that were not cancelled or rejected. Daily and monthly buckets use the restaurant's timezone (`Asia/Colombo`), not UTC.
+Revenue counts orders with `payment_status = paid` (a verified Stripe or PayHere payment, or COD collected) that were not cancelled or rejected. Daily and monthly buckets use the restaurant's timezone (`Asia/Colombo`), not UTC.
 
 ---
 
@@ -167,7 +175,12 @@ Everything lives in `.env`; see [.env.example](.env.example) for every key. Neve
 | Key | Purpose |
 | --- | --- |
 | `DB_*` | PostgreSQL connection. The connection pins the session timezone to UTC. |
-| `FRONTEND_URL` | Storefront origin. Used for CORS and the PayHere return and cancel pages. |
+| `FRONTEND_URL` | Storefront origin. Used for CORS and the Stripe/PayHere return and cancel pages. |
+| `STRIPE_SECRET_KEY` | `sk_test_…` (sandbox) or `sk_live_…`. Stripe is offered to customers only once this is set. Server only. |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_…` signing secret of the webhook endpoint. Without it webhooks answer 503 and payments are confirmed only by the return page. |
+| `STRIPE_SUCCESS_URL`, `STRIPE_CANCEL_URL` | Default `FRONTEND_URL/?checkout=complete` and `?checkout=cancelled`; `&order=<number>` is appended. |
+| `STRIPE_SESSION_MINUTES` | How long the payment page stays open (30–1440, default 30). |
+| `STRIPE_API_BASE` | Development only: point the SDK at a local mock. Leave blank. |
 | `CORS_ALLOWED_ORIGINS` | Optional extra allowed origins, comma-separated. |
 | `PAYHERE_MERCHANT_ID`, `PAYHERE_MERCHANT_SECRET` | From the PayHere portal (Integrations → add your domain). |
 | `PAYHERE_SANDBOX` | `true` → `sandbox.payhere.lk`; `false` → `www.payhere.lk`. |
@@ -178,7 +191,16 @@ Everything lives in `.env`; see [.env.example](.env.example) for every key. Neve
 | `SANCTUM_TOKEN_EXPIRATION` | Token lifetime in minutes (default 7 days). |
 | `MAIL_*`, `QUEUE_CONNECTION` | Notification delivery. The default `MAIL_MAILER=log` writes emails to `storage/logs`. |
 
-Runtime settings (delivery fee, free-delivery threshold, minimum order, prep time, and switches for accepting orders, delivery, pickup, COD and PayHere) are edited through `PATCH /api/v1/admin/settings`. Defaults are in `config/restaurant.php`.
+Runtime settings (delivery fee, free-delivery threshold, minimum order, prep time, and switches for accepting orders, delivery, pickup, COD, Stripe and PayHere) are edited through `PATCH /api/v1/admin/settings`. Defaults are in `config/restaurant.php`.
+
+### Testing Stripe locally
+
+1. Put your test secret key in `.env`: `STRIPE_SECRET_KEY=sk_test_…` (Dashboard → Developers → API keys).
+2. `stripe login`, then `stripe listen --forward-to localhost:8000/api/v1/payments/stripe/webhook`. Copy the `whsec_…` it prints into `STRIPE_WEBHOOK_SECRET` (`php artisan serve` restarts itself when `.env` changes).
+3. Check out on the storefront with card `4242 4242 4242 4242`, any future expiry and any CVC. `4000 0000 0000 0002` is declined; `4000 0025 0000 3155` asks for 3-D Secure.
+4. `stripe trigger checkout.session.completed` sends a test event, which this API logs as `ignored` / `unknown_session` because it did not create that session.
+
+In production add an endpoint in Dashboard → Developers → Webhooks for `https://<api>/api/v1/payments/stripe/webhook` with the five events above, and use its signing secret.
 
 ### Testing PayHere in the sandbox
 
@@ -240,7 +262,7 @@ php artisan db:seed --class=DemoActivitySeeder      # OPT-IN: 30 demo customers 
 
 - **Add-ons in the UI:** the API supports add-ons end to end (menu, cart, checkout, order history, admin CRUD). The storefront and the admin portal don't show them yet: the storefront still adds plain burgers, and the portal's product editor still says variations aren't available. Product "variations" (e.g. double patty) are modelled as add-ons rather than as a separate variant table.
 - **Restaurant name at PayHere:** the item description sent to PayHere still uses `RESTAURANT_NAME` from `.env`; the name edited in the admin portal appears on the website (`GET /restaurant`).
-- **Refunds:** PayHere refunds are made in the PayHere merchant portal. The API flags them as `refund_required` but does not call PayHere's Refund API.
+- **Refunds:** Stripe refunds are made in the Stripe Dashboard and PayHere refunds in the PayHere merchant portal. The API flags orders as `refund_required` but calls neither provider's refund API, and a refund made in the Dashboard is not reflected back on the order.
 - **Delivery fee:** one flat fee with a free-delivery threshold. There is no per-area pricing.
 - **Checkout requires an account:** guests can build a cart, but placing an order requires an account, so orders can be tracked and PayHere gets the customer's contact details.
 - **Password reset:** there is no password-reset-by-email flow yet (it needs a mail provider).

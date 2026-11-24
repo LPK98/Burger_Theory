@@ -27,7 +27,7 @@ export function ReasonModal({ target, onClose, onSubmit, pending }: { target: { 
       description={
         <>
           The customer sees this reason. Stock and ingredients go back to inventory
-          {target?.order.payment_status === 'paid' ? ', and the order is flagged for a PayHere refund.' : '.'}
+          {target?.order.payment_status === 'paid' ? ', and the order is flagged for a refund.' : '.'}
         </>
       }
       footer={
@@ -83,7 +83,7 @@ export function OrderDrawer({ orderNumber, onClose }: { orderNumber: string | nu
   const o = query.data
   const advance = o?.next_statuses.filter((s) => !VOID.includes(s)) ?? []
   const voids = o?.next_statuses.filter((s) => VOID.includes(s)) ?? []
-  const awaitingPayHere = o?.status === 'pending' && o.payment_method === 'payhere' && o.payment_status !== 'paid'
+  const awaitingOnline = o?.status === 'pending' && o.payment_method !== 'cod' && o.payment_status !== 'paid'
   const canCollect = o?.payment_method === 'cod' && o.payment_status === 'pending' && ['ready', 'out_for_delivery', 'delivered'].includes(o.status)
 
   return (
@@ -121,7 +121,7 @@ export function OrderDrawer({ orderNumber, onClose }: { orderNumber: string | nu
                 <Button
                   key={s}
                   variant="primary"
-                  disabled={s === 'confirmed' && awaitingPayHere}
+                  disabled={s === 'confirmed' && awaitingOnline}
                   loading={status.isPending && status.variables?.status === s}
                   onClick={() => status.mutate({ order: o, status: s })}
                 >
@@ -142,9 +142,9 @@ export function OrderDrawer({ orderNumber, onClose }: { orderNumber: string | nu
           </div>
         ) : (
           <div className="space-y-7">
-            {awaitingPayHere && (
+            {awaitingOnline && (
               <p className="rounded-xl border border-warn/30 bg-warn/8 px-4 py-3 text-sm text-[#ffd98a]">
-                Waiting for PayHere. The order can be confirmed once the server receives PayHere’s signed payment notification.
+                Waiting for {o.payment_method === 'stripe' ? 'Stripe' : 'PayHere'}. The order can be confirmed once the server has verified the payment.
               </p>
             )}
 
@@ -298,7 +298,7 @@ export function OrderDrawer({ orderNumber, onClose }: { orderNumber: string | nu
                         </span>
                       </p>
                       <p className="text-xs text-dim">{dateTime(t.at)}</p>
-                      {t.note && <p className="mt-1 text-[0.8125rem] text-grey">“{t.note}”</p>}
+                      {t.note && <p className="mt-1 text-[0.9375rem] text-grey">“{t.note}”</p>}
                     </li>
                   ))}
                 </ol>

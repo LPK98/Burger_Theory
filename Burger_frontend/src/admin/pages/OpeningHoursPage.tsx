@@ -52,7 +52,7 @@ function LiveStatus({ hours }: { hours: OpeningHoursAdmin }) {
     <Card aria-labelledby="h-now">
       <CardHeader id="h-now" title="Right now" description="What the website shows at this moment (saved settings)." />
       <div className="p-5">
-        <Badge tone={hours.status.state === 'temporarily_closed' ? 'serious' : STATUS_TONE[copy.tone]} className="text-[0.8125rem]">
+        <Badge tone={hours.status.state === 'temporarily_closed' ? 'serious' : STATUS_TONE[copy.tone]} className="text-[0.9375rem]">
           {copy.label}
         </Badge>
         <p className="title mt-3 text-[1.75rem] leading-tight text-bone">{copy.detail}</p>
@@ -169,7 +169,7 @@ function HoursForm({ hours }: { hours: OpeningHoursAdmin }) {
                       {overnight && <Badge tone="info">Closes next day</Badge>}
                     </div>
                   )}
-                  {error && <p className="w-full text-[0.8125rem] text-[#ff8a83]">{error}</p>}
+                  {error && <p className="w-full text-[0.9375rem] text-[#ff8a83]">{error}</p>}
                 </li>
               )
             })}
@@ -254,7 +254,7 @@ function SpecialDates({ hours }: { hours: OpeningHoursAdmin }) {
       </div>
       <div className="min-w-0 flex-1 basis-40">
         <p className="text-sm text-bone">{s.title}</p>
-        {s.note && <p className="mt-0.5 truncate text-[0.8125rem] text-dim">{s.note}</p>}
+        {s.note && <p className="mt-0.5 truncate text-[0.9375rem] text-dim">{s.note}</p>}
       </div>
       {s.closed ? <Badge tone="bad">Closed</Badge> : <Badge tone="ember">{formatRange(s)}</Badge>}
       {!s.is_past && (
@@ -299,7 +299,7 @@ function SpecialDates({ hours }: { hours: OpeningHoursAdmin }) {
       )}
       {past.length > 0 && (
         <details className="group border-t border-rule/70">
-          <summary className="cursor-pointer list-none px-5 py-3 text-[0.8125rem] text-dim hover:text-grey">
+          <summary className="cursor-pointer list-none px-5 py-3 text-[0.9375rem] text-dim hover:text-grey">
             <span className="group-open:hidden">Show</span>
             <span className="hidden group-open:inline">Hide</span> {past.length} past {past.length === 1 ? 'entry' : 'entries'}
           </summary>
@@ -397,7 +397,7 @@ function SpecialDateForm({ special, today, onClose }: { special: SpecialDate | '
           <TextField label="Last day" optional type="date" min={form.starts_on || today} value={form.ends_on} onChange={(e) => update('ends_on', e.target.value)} error={errors.ends_on} />
         </div>
         <div>
-          <p className="mb-1.5 text-[0.8125rem] font-medium text-bone/85">On these days</p>
+          <p className="mb-1.5 text-[0.9375rem] font-medium text-bone/85">On these days</p>
           <Segmented
             label="On these days"
             value={form.kind}

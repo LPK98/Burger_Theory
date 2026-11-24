@@ -74,11 +74,11 @@ export function BrandMark({ className }: { className?: string }) {
 
 function Brand() {
   return (
-    <div className="flex items-center gap-2.5">
-      <BrandMark className="h-8 w-8" />
+    <div className="flex items-center gap-3">
+      <BrandMark className="h-10 w-10 shrink-0" />
       <div className="leading-none">
-        <p className="title text-[1.35rem] text-bone">Burger Theory</p>
-        <p className="mt-1 text-[0.6875rem] font-medium text-dim">Admin portal</p>
+        <p className="title whitespace-nowrap text-[1.75rem] text-bone">Burger Theory</p>
+        <p className="mt-1.5 text-[0.9375rem] font-medium text-dim">Admin portal</p>
       </div>
     </div>
   )
@@ -119,7 +119,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
                       <Icon className={cn('h-[1.05rem] w-[1.05rem]', isActive ? 'text-ember' : 'text-dim group-hover:text-grey')} aria-hidden="true" />
                       <span className="flex-1">{label}</span>
                       {to === '/orders' && pending ? (
-                        <span className="tabular rounded-full bg-ember px-1.5 text-[0.6875rem] font-bold leading-[1.1rem] text-ember-ink" aria-label={`${pending} pending`}>
+                        <span className="tabular rounded-full bg-ember px-1.5 text-[0.8125rem] font-bold leading-[1.1rem] text-ember-ink" aria-label={`${pending} pending`}>
                           {pending}
                         </span>
                       ) : null}

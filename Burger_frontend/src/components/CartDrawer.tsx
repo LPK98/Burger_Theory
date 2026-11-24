@@ -1,22 +1,20 @@
-import { ShoppingBag, Trash, X } from 'lucide-react'
+import { CircleCheck, ShoppingBag, Trash, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { SITE } from '../data/site'
-import { phoneHref, useRestaurantProfile } from '../hooks/useRestaurantProfile'
 import { useAuth, useAuthActions } from '../hooks/useAuth'
 import { useCart, useCartActions } from '../hooks/useCart'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { useLenis } from '../hooks/useLenis'
 import { gsap, useGSAP } from '../lib/gsap'
 import { formatPrice, prefersReducedMotion } from '../lib/utils'
-import { submitOrder } from '../services/orders'
+import type { Order } from '../services/api/types'
 import { Button } from './Button'
+import { CheckoutForm } from './CheckoutForm'
 import { QuantityStepper } from './QuantityStepper'
 
 export function CartDrawer() {
   const { items, count, subtotal, isOpen } = useCart()
   const { open, close, setQuantity, remove, clear } = useCartActions()
   const { lock, unlock, scrollTo } = useLenis()
-  const phone = useRestaurantProfile().profile?.phone
   const { status: authStatus, user } = useAuth()
   const { openDialog } = useAuthActions()
 
@@ -26,11 +24,10 @@ export function CartDrawer() {
   const returnFocus = useRef<HTMLElement | null>(null)
   const firstRun = useRef(true)
 
-  const [pending, setPending] = useState(false)
-  // A checkout message belongs to the cart it was produced for; editing the cart retires it.
-  const cartKey = items.map((i) => `${i.productId}:${i.quantity}`).join('|')
-  const [checkoutResult, setCheckoutResult] = useState<{ text: string; cartKey: string } | null>(null)
-  const notice = checkoutResult?.cartKey === cartKey ? checkoutResult.text : null
+  // cart → checkout (signed in) → placed (cash orders; online ones leave for the payment page).
+  const [step, setStep] = useState<'cart' | 'checkout'>('cart')
+  const [placed, setPlaced] = useState<Order | null>(null)
+  const inCheckout = step === 'checkout' && authStatus === 'signed-in' && items.length > 0
 
   useFocusTrap(panel, isOpen, close)
 
@@ -43,7 +40,8 @@ export function CartDrawer() {
     return () => {
       window.clearTimeout(timer)
       unlock()
-      setCheckoutResult(null)
+      setStep('cart')
+      setPlaced(null)
       returnFocus.current?.focus({ preventScroll: true })
     }
   }, [isOpen, lock, unlock])
@@ -104,19 +102,15 @@ export function CartDrawer() {
     openDialog(view, { intent: 'checkout', onClose: open })
   }
 
-  const checkout = async () => {
+  const checkout = () => {
     if (authStatus !== 'signed-in') return requireAccount('signup')
-    setPending(true)
-    const result = await submitOrder({
-      lines: items.map((i) => ({ productId: i.productId, name: i.product.name, quantity: i.quantity, unitPrice: i.product.price })),
-      subtotal,
-      currency: SITE.currency,
-    })
-    setPending(false)
-    setCheckoutResult({
-      text: result.status === 'accepted' ? `Order ${result.orderId} received. We’ll text you when it’s ready.` : result.message,
-      cartKey,
-    })
+    setStep('checkout')
+  }
+
+  const onPlaced = (order: Order) => {
+    setPlaced(order)
+    setStep('cart')
+    clear()
   }
 
   return (
@@ -131,7 +125,15 @@ export function CartDrawer() {
       >
         <header className="flex items-center justify-between gap-4 border-b border-line px-6 py-5">
           <h2 id="cart-title" className="display text-[2.6rem] text-cream">
-            Your cart <span className="text-ember">{count > 0 ? `(${count})` : ''}</span>
+            {placed ? (
+              'Order placed'
+            ) : inCheckout ? (
+              'Checkout'
+            ) : (
+              <>
+                Your cart <span className="text-ember">{count > 0 ? `(${count})` : ''}</span>
+              </>
+            )}
           </h2>
           <button
             ref={closeButton}
@@ -144,7 +146,19 @@ export function CartDrawer() {
           </button>
         </header>
 
-        {items.length === 0 ? (
+        {placed ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-5 px-10 text-center" role="status">
+            <CircleCheck className="h-10 w-10 text-ember" aria-hidden="true" />
+            <p className="display text-[2.2rem] text-cream">Thanks{user ? `, ${user.name.split(' ')[0]}` : ''}!</p>
+            <p className="max-w-[34ch] text-bone/80">
+              Order <span className="text-cream">{placed.order_number}</span> is with the kitchen. You’ll pay {formatPrice(placed.total)}{' '}
+              {placed.fulfilment_type === 'delivery' ? 'when it arrives' : 'when you collect it'}, and we’ll email you as it moves along.
+            </p>
+            <Button onClick={browseMenu}>Back to the menu</Button>
+          </div>
+        ) : inCheckout ? (
+          <CheckoutForm items={items} onBack={() => setStep('cart')} onPlaced={onPlaced} />
+        ) : items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-5 px-10 text-center">
             <ShoppingBag className="h-10 w-10 text-ember" aria-hidden="true" />
             <p className="display text-[2.2rem] text-cream">Nothing here yet</p>
@@ -189,11 +203,11 @@ export function CartDrawer() {
                 <dt className="ui text-ash">Subtotal</dt>
                 <dd className="display tabular text-[2.4rem] text-bone">{formatPrice(subtotal)}</dd>
               </dl>
-              <p className="mt-1 text-sm text-ash">Taxes, delivery and tips are added at checkout.</p>
+              <p className="mt-1 text-sm text-ash">Delivery and any discounts are worked out at checkout.</p>
               {authStatus === 'signed-in' ? (
                 <>
-                  <Button size="lg" className="mt-5 w-full" onClick={checkout} disabled={pending} aria-describedby={notice ? 'checkout-notice' : undefined}>
-                    {pending ? 'Checking…' : 'Checkout'}
+                  <Button size="lg" className="mt-5 w-full" onClick={checkout}>
+                    Checkout
                   </Button>
                   {user && (
                     <p className="ui mt-3 truncate text-center text-sm text-ash">
@@ -222,23 +236,6 @@ export function CartDrawer() {
                   </p>
                 </>
               )}
-              <div role="status" aria-live="polite">
-                {notice && (
-                  <p id="checkout-notice" className="mt-4 rounded-[3px] border border-ember/40 bg-ember/10 p-4 text-[0.95rem] leading-relaxed text-cream">
-                    {notice} To order now,{' '}
-                    {phone ? (
-                      <>
-                        call{' '}
-                        <a className="whitespace-nowrap text-ember underline underline-offset-4" href={phoneHref(phone)}>
-                          {phone}
-                        </a>{' '}
-                        or{' '}
-                      </>
-                    ) : null}
-                    show this cart at the counter.
-                  </p>
-                )}
-              </div>
               <button type="button" onClick={clear} className="ui mt-4 text-sm text-ash underline-offset-4 transition-colors hover:text-ember hover:underline">
                 Empty cart
               </button>

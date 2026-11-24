@@ -20,6 +20,7 @@ class UpdateSettingsRequest extends FormRequest
             'pickup_enabled' => ['sometimes', 'boolean'],
             'cod_enabled' => ['sometimes', 'boolean'],
             'payhere_enabled' => ['sometimes', 'boolean'],
+            'stripe_enabled' => ['sometimes', 'boolean'],
             'delivery_fee' => ['sometimes', 'integer', 'min:0', 'max:10000000'],
             /** null disables free delivery. */
             'free_delivery_threshold' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:1000000000'],

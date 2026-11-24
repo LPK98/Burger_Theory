@@ -12,7 +12,7 @@ use Illuminate\Database\Seeder;
  * The menu from the storefront (Burger_frontend/src/data/products.ts), with the same
  * slugs so the frontend's product ids map 1:1 onto API products.
  *
- * PRICES ARE PLACEHOLDERS: the frontend number (e.g. 1450) is taken as LKR 1,450.00.
+ * PRICES ARE PLACEHOLDERS: the same USD cents as the frontend (1450 = $14.50).
  * Set real prices through PUT /api/v1/admin/products/{id} before launch.
  * Images point at the frontend's own /images/products/*.svg until real photos are
  * uploaded to Cloudinary.
@@ -52,7 +52,7 @@ class MenuSeeder extends Seeder
             );
         }
 
-        foreach (self::PRODUCTS as $position => [$slug, $name, $description, $rupees, $alt, $categorySlugs, $badge, $featured]) {
+        foreach (self::PRODUCTS as $position => [$slug, $name, $description, $cents, $alt, $categorySlugs, $badge, $featured]) {
             $product = Product::query()->where('slug', $slug)->first();
             $isNew = $product === null;
 
@@ -60,7 +60,7 @@ class MenuSeeder extends Seeder
             $product->fill([
                 'name' => $name,
                 'description' => $description,
-                'price' => $rupees * 100,
+                'price' => $cents,
                 'badge' => $badge,
                 'is_featured' => $featured,
                 'is_available' => true,

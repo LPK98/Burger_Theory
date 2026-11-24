@@ -60,6 +60,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         ->middleware('throttle:payhere-notify')
         ->name('payments.payhere.notify');
 
+    // Stripe webhook (verified by the Stripe-Signature header, not by login) ----
+    Route::post('payments/stripe/webhook', [PaymentController::class, 'stripeWebhook'])
+        ->middleware('throttle:stripe-webhook')
+        ->name('payments.stripe.webhook');
+
     // Signed-in customers -------------------------------------------------------
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
@@ -78,6 +83,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
 
         Route::post('payments/payhere', [PaymentController::class, 'startPayHere'])->middleware('throttle:orders')->name('payments.payhere.start');
+        Route::post('payments/stripe', [PaymentController::class, 'startStripe'])->middleware('throttle:orders')->name('payments.stripe.start');
+        Route::post('payments/stripe/confirm', [PaymentController::class, 'confirmStripe'])->middleware('throttle:orders')->name('payments.stripe.confirm');
         Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
 
         Route::post('products/{product}/reviews', [ReviewController::class, 'store'])->name('products.reviews.store');

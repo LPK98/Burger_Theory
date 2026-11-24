@@ -4,8 +4,8 @@
  * Copy into the storefront (e.g. Burger_frontend/src/services/api/types.ts).
  *
  * Conventions
- * - Every money field is an INTEGER number of cents (minor units) of `currency` (LKR),
- *   the same convention as the frontend's existing `Product.price`. 145000 = LKR 1,450.00.
+ * - Every money field is an INTEGER number of cents (minor units) of `currency` (USD),
+ *   the same convention as the frontend's existing `Product.price`. 1450 = $14.50.
  * - Timestamps are ISO-8601 strings in UTC.
  * - Single resources are wrapped as `{ data: T }`; lists as `{ data: T[], links, meta }`.
  */
@@ -83,7 +83,7 @@ export type ApiErrorCode =
 
 export type UserRole = 'customer' | 'admin'
 export type FulfilmentType = 'delivery' | 'pickup'
-export type PaymentMethod = 'payhere' | 'cod'
+export type PaymentMethod = 'stripe' | 'payhere' | 'cod'
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'cancelled' | 'charged_back' | 'refund_required'
 export type OrderStatus =
   | 'pending'
@@ -167,7 +167,7 @@ export interface Product {
   description: string | null
   price: Cents
   compare_at_price: Cents | null
-  currency: 'LKR'
+  currency: string
   badge: string | null
   is_featured: boolean
   is_available: boolean
@@ -220,7 +220,7 @@ export interface RestaurantProfile {
 export interface RestaurantInfo {
   name: string
   profile: RestaurantProfile
-  currency: 'LKR'
+  currency: string
   timezone: string
   accepting_orders: boolean
   fulfilment_types: FulfilmentType[]
@@ -269,7 +269,7 @@ export interface CartLine {
 export interface Cart {
   /** Guest carts only: store it and send it back as the X-Cart-Token header. */
   token: string | null
-  currency: 'LKR'
+  currency: string
   fulfilment_type: FulfilmentType
   items: CartLine[]
   item_count: number
@@ -333,9 +333,9 @@ export interface Payment {
   method: PaymentMethod
   status: PaymentStatus
   amount: Cents
-  currency: 'LKR'
+  currency: string
   provider_method: string | null
-  /** Masked by PayHere, e.g. "************1292". */
+  /** Masked card number, e.g. "************4242". Card details never reach this API. */
   card_mask: string | null
   status_message: string | null
   paid_at: IsoDateTime | null
@@ -360,7 +360,7 @@ export interface Order {
   payment_method: PaymentMethod
   payment_status: PaymentStatus
   fulfilment_type: FulfilmentType
-  currency: 'LKR'
+  currency: string
   subtotal: Cents
   discount_total: Cents
   delivery_fee: Cents
@@ -389,8 +389,18 @@ export interface PlaceOrderResponse extends ApiItem<Order> {
   meta: {
     /** false when an Idempotency-Key matched an earlier order (HTTP 200 instead of 201). */
     created: boolean
-    next_action: 'payhere_checkout' | null
+    next_action: 'stripe_checkout' | 'payhere_checkout' | null
   }
+}
+
+export interface StripeCheckout {
+  payment: Payment
+  /** Stripe's hosted payment page (https://checkout.stripe.com/…). Send the browser there. */
+  url: string
+  /** The page stops accepting payment after this; ask for a new one with startStripe. */
+  expires_at: IsoDateTime
+  /** true with a sk_test_ key: use Stripe test cards, nothing is charged. */
+  test_mode: boolean
 }
 
 export interface PayHereCheckout {

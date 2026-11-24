@@ -8,7 +8,7 @@ import { Button, Card, CardHeader, ErrorState, Notice, Skeleton, Switch, TextFie
 import { PageHeader } from '../layout'
 import { ApiError, errorMessage } from '../lib/api'
 import { settings as settingsApi } from '../lib/endpoints'
-import { centsToRupees, rupeesToCents } from '../lib/format'
+import { centsToDollars, dollarsToCents } from '../lib/format'
 import type { Settings, SettingsResponse } from '../lib/types'
 
 export default function SettingsPage() {
@@ -56,6 +56,7 @@ interface FormState {
   pickup_enabled: boolean
   cod_enabled: boolean
   payhere_enabled: boolean
+  stripe_enabled: boolean
   delivery_fee: string
   free_delivery_threshold: string
   minimum_order_amount: string
@@ -78,9 +79,10 @@ function toForm(s: Settings): FormState {
     pickup_enabled: s.pickup_enabled,
     cod_enabled: s.cod_enabled,
     payhere_enabled: s.payhere_enabled,
-    delivery_fee: centsToRupees(s.delivery_fee),
-    free_delivery_threshold: centsToRupees(s.free_delivery_threshold),
-    minimum_order_amount: centsToRupees(s.minimum_order_amount),
+    stripe_enabled: s.stripe_enabled,
+    delivery_fee: centsToDollars(s.delivery_fee),
+    free_delivery_threshold: centsToDollars(s.free_delivery_threshold),
+    minimum_order_amount: centsToDollars(s.minimum_order_amount),
     estimated_preparation_minutes: String(s.estimated_preparation_minutes),
   }
 }
@@ -117,11 +119,11 @@ function SettingsForm({ response }: { response: SettingsResponse }) {
     e.preventDefault()
     const found: Record<string, string> = {}
     if (form.restaurant_name.trim().length < 2) found.restaurant_name = 'Enter the restaurant’s name.'
-    const fee = rupeesToCents(form.delivery_fee)
+    const fee = dollarsToCents(form.delivery_fee)
     if (fee === null) found.delivery_fee = 'Enter an amount in rupees (0 for free).'
-    const minimum = rupeesToCents(form.minimum_order_amount)
+    const minimum = dollarsToCents(form.minimum_order_amount)
     if (minimum === null) found.minimum_order_amount = 'Enter an amount in rupees (0 for none).'
-    const threshold = form.free_delivery_threshold.trim() ? rupeesToCents(form.free_delivery_threshold) : null
+    const threshold = form.free_delivery_threshold.trim() ? dollarsToCents(form.free_delivery_threshold) : null
     if (form.free_delivery_threshold.trim() && threshold === null) found.free_delivery_threshold = 'Enter an amount in rupees, or leave it blank.'
     const prep = Number(form.estimated_preparation_minutes)
     if (!Number.isInteger(prep) || prep < 1 || prep > 600) found.estimated_preparation_minutes = 'Enter minutes between 1 and 600.'
@@ -133,7 +135,7 @@ function SettingsForm({ response }: { response: SettingsResponse }) {
     }
     link('instagram_url', /^https:\/\/([a-z0-9-]+\.)*instagram\.com(\/|$)/i, 'Instagram')
     link('facebook_url', /^https:\/\/([a-z0-9-]+\.)*(facebook|fb)\.com(\/|$)/i, 'Facebook')
-    if (!form.cod_enabled && !form.payhere_enabled) found.cod_enabled = 'Keep at least one payment method switched on.'
+    if (!form.cod_enabled && !form.payhere_enabled && !form.stripe_enabled) found.cod_enabled = 'Keep at least one payment method switched on.'
     setErrors(found)
     if (Object.keys(found).length) return toast.error('Check the highlighted fields.')
 
@@ -152,6 +154,7 @@ function SettingsForm({ response }: { response: SettingsResponse }) {
       pickup_enabled: form.pickup_enabled,
       cod_enabled: form.cod_enabled,
       payhere_enabled: form.payhere_enabled,
+      stripe_enabled: form.stripe_enabled,
       delivery_fee: fee!,
       free_delivery_threshold: threshold,
       minimum_order_amount: minimum!,
@@ -188,11 +191,11 @@ function SettingsForm({ response }: { response: SettingsResponse }) {
             <Switch checked={form.accepting_orders} onChange={(v) => update('accepting_orders', v)} label="Taking orders" description="Switch off to pause online ordering, e.g. when the kitchen is full." />
             <Switch checked={form.delivery_enabled} onChange={(v) => update('delivery_enabled', v)} label="Delivery" />
             <Switch checked={form.pickup_enabled} onChange={(v) => update('pickup_enabled', v)} label="Pickup" />
-            {errors.pickup_enabled && <p className="text-[0.8125rem] text-[#ff8a83]">{errors.pickup_enabled}</p>}
+            {errors.pickup_enabled && <p className="text-[0.9375rem] text-[#ff8a83]">{errors.pickup_enabled}</p>}
             <div className="grid gap-4 border-t border-rule pt-5 sm:grid-cols-2">
-              <TextField label="Delivery charge" prefix="Rs" inputMode="decimal" value={form.delivery_fee} onChange={(e) => update('delivery_fee', e.target.value)} error={errors.delivery_fee} />
-              <TextField label="Free delivery from" optional prefix="Rs" inputMode="decimal" value={form.free_delivery_threshold} onChange={(e) => update('free_delivery_threshold', e.target.value)} error={errors.free_delivery_threshold} hint="Order total after discounts. Blank means never free." />
-              <TextField label="Minimum order" prefix="Rs" inputMode="decimal" value={form.minimum_order_amount} onChange={(e) => update('minimum_order_amount', e.target.value)} error={errors.minimum_order_amount} hint="Subtotal before delivery." />
+              <TextField label="Delivery charge" prefix="$" inputMode="decimal" value={form.delivery_fee} onChange={(e) => update('delivery_fee', e.target.value)} error={errors.delivery_fee} />
+              <TextField label="Free delivery from" optional prefix="$" inputMode="decimal" value={form.free_delivery_threshold} onChange={(e) => update('free_delivery_threshold', e.target.value)} error={errors.free_delivery_threshold} hint="Order total after discounts. Blank means never free." />
+              <TextField label="Minimum order" prefix="$" inputMode="decimal" value={form.minimum_order_amount} onChange={(e) => update('minimum_order_amount', e.target.value)} error={errors.minimum_order_amount} hint="Subtotal before delivery." />
               <TextField label="Preparation time" inputMode="numeric" value={form.estimated_preparation_minutes} onChange={(e) => update('estimated_preparation_minutes', e.target.value)} error={errors.estimated_preparation_minutes} hint="Minutes, used for ready-by estimates." />
             </div>
           </div>
@@ -203,18 +206,29 @@ function SettingsForm({ response }: { response: SettingsResponse }) {
           <div className="space-y-5 p-5">
             <Switch checked={form.cod_enabled} onChange={(v) => update('cod_enabled', v)} label="Cash on delivery" description="Staff record the cash when it’s collected." />
             <Switch
+              checked={form.stripe_enabled}
+              onChange={(v) => update('stripe_enabled', v)}
+              label="Stripe card payments"
+              description={
+                integrations.stripe
+                  ? `Connected${integrations.stripe_test_mode ? ' with a test key (no real charges)' : ' with a live key'}.${integrations.stripe_webhook ? '' : ' The webhook signing secret is missing, so payments are confirmed only when customers return to the site.'}`
+                  : 'Not connected: customers won’t see it until STRIPE_SECRET_KEY is set on the server.'
+              }
+            />
+            <Switch
               checked={form.payhere_enabled}
               onChange={(v) => update('payhere_enabled', v)}
               label="PayHere card payments"
               description={integrations.payhere ? `Connected${integrations.payhere_sandbox ? ' to the sandbox (test payments)' : ' to the live account'}.` : 'Not connected: customers won’t see it until PAYHERE_MERCHANT_ID and PAYHERE_MERCHANT_SECRET are set on the server.'}
             />
-            {errors.cod_enabled && <p className="text-[0.8125rem] text-[#ff8a83]">{errors.cod_enabled}</p>}
+            {errors.cod_enabled && <p className="text-[0.9375rem] text-[#ff8a83]">{errors.cod_enabled}</p>}
             <div className="space-y-2 border-t border-rule pt-5 text-sm">
               <p className="text-xs font-medium text-dim">Server connections</p>
+              <Integration ok={integrations.stripe && integrations.stripe_webhook} label="Stripe" detail={integrations.stripe ? `${integrations.stripe_test_mode ? 'Test mode' : 'Live'}${integrations.stripe_webhook ? '' : ', webhook secret missing'}` : 'Not configured'} />
               <Integration ok={integrations.payhere} label="PayHere" detail={integrations.payhere ? (integrations.payhere_sandbox ? 'Sandbox' : 'Live') : 'Not configured'} />
               <Integration ok={integrations.cloudinary} label="Cloudinary (photos)" detail={integrations.cloudinary ? 'Configured' : 'Not configured'} />
               <p className="pt-1 text-xs text-dim">
-                Currency {integrations.currency}, timezone {integrations.timezone}. PayHere payments are confirmed only by the server, from PayHere’s signed notifications.
+                Currency {integrations.currency}, timezone {integrations.timezone}. Online payments are confirmed only by the server: from Stripe’s signed webhooks (or Stripe’s API) and PayHere’s signed notifications.
               </p>
             </div>
           </div>
@@ -311,7 +325,7 @@ function LogoCard({ logoUrl, cloudinary }: { logoUrl: string | null; cloudinary:
             </Button>
           )}
         </div>
-        {!cloudinary && <p className="text-[0.8125rem] text-dim">Uploads need Cloudinary credentials in the backend’s .env file.</p>}
+        {!cloudinary && <p className="text-[0.9375rem] text-dim">Uploads need Cloudinary credentials in the backend’s .env file.</p>}
       </div>
     </Card>
   )

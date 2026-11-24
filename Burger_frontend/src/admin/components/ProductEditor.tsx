@@ -5,7 +5,7 @@ import { Link } from 'react-router'
 import { cn } from '../../lib/utils'
 import { ApiError, errorMessage } from '../lib/api'
 import { categories as categoriesApi, inventory, products, settings } from '../lib/endpoints'
-import { centsToRupees, dateTime, rupeesToCents } from '../lib/format'
+import { centsToDollars, dateTime, dollarsToCents } from '../lib/format'
 import type { Product, ProductInput } from '../lib/types'
 import { Drawer } from './overlay'
 import { useConfirm, useToast } from './overlay-context'
@@ -46,8 +46,8 @@ function toForm(p: Product): Form {
   return {
     name: p.name,
     description: p.description ?? '',
-    price: centsToRupees(p.price),
-    compare_at_price: centsToRupees(p.compare_at_price),
+    price: centsToDollars(p.price),
+    compare_at_price: centsToDollars(p.compare_at_price),
     badge: p.badge ?? '',
     is_available: p.is_available,
     is_featured: p.is_featured,
@@ -83,7 +83,7 @@ export function ProductEditor({ productId, onClose, onCreated }: { productId: nu
           <ImagesSection product={product} />
           <StockSection product={product} />
           <RecipeSection key={`recipe-${product.id}`} product={product} />
-          <p className="flex items-start gap-2 rounded-xl border border-rule bg-pitch/40 px-4 py-3 text-[0.8125rem] text-grey">
+          <p className="flex items-start gap-2 rounded-xl border border-rule bg-pitch/40 px-4 py-3 text-[0.9375rem] text-grey">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-dim" aria-hidden="true" />
             Variations and add-ons aren’t available yet. The website and checkout sell each burger as one fixed item, so options set here would have nowhere to appear.
           </p>
@@ -134,11 +134,11 @@ function DetailsForm({ initial, product, onSaved }: { initial: Form; product?: P
   const submit = (e: FormEvent) => {
     e.preventDefault()
     const found: Errors = {}
-    const price = rupeesToCents(form.price)
-    const compare = form.compare_at_price.trim() ? rupeesToCents(form.compare_at_price) : null
+    const price = dollarsToCents(form.price)
+    const compare = form.compare_at_price.trim() ? dollarsToCents(form.compare_at_price) : null
     if (!form.name.trim()) found.name = 'Give the product a name.'
-    if (price === null) found.price = 'Enter a price in rupees, e.g. 1450 or 1450.50.'
-    if (form.compare_at_price.trim() && compare === null) found.compare_at_price = 'Enter a price in rupees.'
+    if (price === null) found.price = 'Enter a price in dollars, e.g. 14.50.'
+    if (form.compare_at_price.trim() && compare === null) found.compare_at_price = 'Enter a price in dollars.'
     else if (compare !== null && price !== null && compare <= price) found.compare_at_price = 'The original price must be higher than the price.'
     if (form.category_ids.length === 0) found.category_ids = 'Choose at least one category.'
     const threshold = Number(form.low_stock_threshold)
@@ -166,15 +166,15 @@ function DetailsForm({ initial, product, onSaved }: { initial: Form; product?: P
 
   return (
     <form noValidate onSubmit={submit} aria-label="Product details" className="space-y-5">
-      <h3 className="text-[0.9375rem] font-semibold text-bone">Details</h3>
+      <h3 className="text-[1.0625rem] font-semibold text-bone">Details</h3>
       <TextField label="Name" value={form.name} onChange={(e) => update('name', e.target.value)} error={errors.name} maxLength={120} />
       <TextArea label="Description" optional value={form.description} onChange={(e) => update('description', e.target.value)} error={errors.description} maxLength={2000} rows={3} />
       <div className="grid gap-4 sm:grid-cols-3">
-        <TextField label="Price" prefix="Rs" inputMode="decimal" value={form.price} onChange={(e) => update('price', e.target.value)} error={errors.price} placeholder="1450" />
+        <TextField label="Price" prefix="$" inputMode="decimal" value={form.price} onChange={(e) => update('price', e.target.value)} error={errors.price} placeholder="14.50" />
         <TextField
           label="Original price"
           optional
-          prefix="Rs"
+          prefix="$"
           inputMode="decimal"
           value={form.compare_at_price}
           onChange={(e) => update('compare_at_price', e.target.value)}
@@ -185,7 +185,7 @@ function DetailsForm({ initial, product, onSaved }: { initial: Form; product?: P
       </div>
 
       <fieldset>
-        <legend className="mb-2 text-[0.8125rem] font-medium text-bone/85">Categories</legend>
+        <legend className="mb-2 text-[0.9375rem] font-medium text-bone/85">Categories</legend>
         {!cats.data ? (
           <Skeleton className="h-9" />
         ) : (
@@ -211,7 +211,7 @@ function DetailsForm({ initial, product, onSaved }: { initial: Form; product?: P
             })}
           </div>
         )}
-        {errors.category_ids && <p className="mt-1.5 text-[0.8125rem] text-[#ff8a83]">{errors.category_ids}</p>}
+        {errors.category_ids && <p className="mt-1.5 text-[0.9375rem] text-[#ff8a83]">{errors.category_ids}</p>}
       </fieldset>
 
       <div className="space-y-4 rounded-xl border border-rule bg-pitch/40 p-4">
@@ -273,10 +273,10 @@ function ImagesSection({ product }: { product: Product }) {
     <section aria-labelledby="images-title" className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 id="images-title" className="text-[0.9375rem] font-semibold text-bone">
+          <h3 id="images-title" className="text-[1.0625rem] font-semibold text-bone">
             Photos
           </h3>
-          <p className="text-[0.8125rem] text-dim">JPG, PNG or WebP up to 5 MB, stored on Cloudinary. The starred photo is shown on the menu.</p>
+          <p className="text-[0.9375rem] text-dim">JPG, PNG or WebP up to 5 MB, stored on Cloudinary. The starred photo is shown on the menu.</p>
         </div>
         <input
           ref={file}
@@ -368,7 +368,7 @@ function StockSection({ product }: { product: Product }) {
   return (
     <section aria-labelledby="stock-title" className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h3 id="stock-title" className="text-[0.9375rem] font-semibold text-bone">
+        <h3 id="stock-title" className="text-[1.0625rem] font-semibold text-bone">
           Burgers available to sell
         </h3>
         <div className="flex items-center gap-3">
@@ -396,7 +396,7 @@ function StockSection({ product }: { product: Product }) {
         <Button type="submit" loading={adjust.isPending}>
           Update stock
         </Button>
-        {error && <p className="text-[0.8125rem] text-[#ff8a83] sm:col-span-4">{error}</p>}
+        {error && <p className="text-[0.9375rem] text-[#ff8a83] sm:col-span-4">{error}</p>}
       </form>
       {log.data && log.data.data.length > 0 && (
         <ul className="divide-y divide-rule/70 text-sm">
@@ -449,10 +449,10 @@ function RecipeSection({ product }: { product: Product }) {
   return (
     <form noValidate onSubmit={submit} aria-labelledby="recipe-title" className="space-y-4">
       <div>
-        <h3 id="recipe-title" className="text-[0.9375rem] font-semibold text-bone">
+        <h3 id="recipe-title" className="text-[1.0625rem] font-semibold text-bone">
           Recipe
         </h3>
-        <p className="text-[0.8125rem] text-dim">
+        <p className="text-[0.9375rem] text-dim">
           What one burger uses. Each order takes these amounts from <Link to="/inventory" className="text-grey underline-offset-4 hover:underline">inventory</Link>, and a cancelled order puts them back.
         </p>
       </div>
@@ -496,7 +496,7 @@ function RecipeSection({ product }: { product: Product }) {
               })}
             </ul>
           )}
-          {error && <p className="text-[0.8125rem] text-[#ff8a83]">{error}</p>}
+          {error && <p className="text-[0.9375rem] text-[#ff8a83]">{error}</p>}
           <div className="flex flex-wrap justify-between gap-2">
             <Button size="sm" variant="ghost" icon={<Plus className="h-4 w-4" aria-hidden="true" />} onClick={() => setRows((r) => [...r, { ingredient_id: '', quantity: '1' }])}>
               Add ingredient

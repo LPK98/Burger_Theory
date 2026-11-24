@@ -70,7 +70,7 @@ export default function ReportsPage() {
 
   const exportCsv = () => {
     if (!sales.data) return
-    const rows = [['period', 'paid_orders', 'revenue_lkr', 'discounts_lkr', 'orders_placed', 'cancelled_or_rejected'], ...sales.data.series.map((s) => [s.period, s.orders, (s.revenue / 100).toFixed(2), (s.discounts / 100).toFixed(2), s.placed, s.cancelled])]
+    const rows = [['period', 'paid_orders', 'revenue_usd', 'discounts_usd', 'orders_placed', 'cancelled_or_rejected'], ...sales.data.series.map((s) => [s.period, s.orders, (s.revenue / 100).toFixed(2), (s.discounts / 100).toFixed(2), s.placed, s.cancelled])]
     const blob = new Blob([rows.map((r) => r.join(',')).join('\n')], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = Object.assign(document.createElement('a'), { href: url, download: `burger-theory-sales-${interval}-${from}-to-${to}.csv` })
@@ -96,7 +96,7 @@ export default function ReportsPage() {
       {/* One filter row scopes every figure on the page. */}
       <Card className="mb-4 flex flex-wrap items-end gap-3 p-4">
         <div>
-          <p className="mb-1.5 text-[0.8125rem] font-medium text-bone/85">Period</p>
+          <p className="mb-1.5 text-[0.9375rem] font-medium text-bone/85">Period</p>
           <Segmented
             label="Report period"
             value={preset?.key ?? 'custom'}
@@ -111,7 +111,7 @@ export default function ReportsPage() {
           </>
         )}
         <div>
-          <p className="mb-1.5 text-[0.8125rem] font-medium text-bone/85">Group by</p>
+          <p className="mb-1.5 text-[0.9375rem] font-medium text-bone/85">Group by</p>
           <Segmented
             label="Group by"
             value={interval}
@@ -123,7 +123,7 @@ export default function ReportsPage() {
             ]}
           />
         </div>
-        <p className="ml-auto pb-2 text-[0.8125rem] text-dim">
+        <p className="ml-auto pb-2 text-[0.9375rem] text-dim">
           {from} to {to}, Sri Lanka time
         </p>
       </Card>
@@ -144,7 +144,7 @@ export default function ReportsPage() {
             { label: 'Delivery fees', value: s && moneyWhole(s.delivery_fees) },
           ].map((t) => (
             <Card key={t.label} className={`p-4 transition-opacity ${stale ? 'opacity-70' : ''}`}>
-              <p className="text-[0.8125rem] text-grey">{t.label}</p>
+              <p className="text-[0.9375rem] text-grey">{t.label}</p>
               {t.value ? <p className="mt-1.5 text-xl font-semibold text-bone">{t.value}</p> : <Skeleton className="mt-2 h-6 w-20" />}
             </Card>
           ))}

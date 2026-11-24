@@ -46,7 +46,8 @@ class MoneyTest extends TestCase
         $this->assertSame('0.07', Money::toDecimal(7));
         $this->assertSame('-3.50', Money::toDecimal(-350));
         $this->assertSame('1234567.89', Money::toDecimal(123456789));
-        $this->assertSame('LKR 1,234,567.89', Money::format(123456789));
+        $this->assertSame('USD 1,234,567.89', Money::format(123456789));
+        $this->assertSame('LKR 1,450.00', Money::format(145000, 'LKR'));
     }
 
     public function test_percentages_round_half_up_to_the_cent(): void

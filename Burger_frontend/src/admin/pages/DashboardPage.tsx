@@ -68,16 +68,16 @@ export default function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="Dashboard" description="Revenue counts paid orders only: PayHere payments verified by the server, and cash recorded as collected." />
+      <PageHeader title="Dashboard" description="Revenue counts paid orders only: online payments verified by the server, and cash recorded as collected." />
 
       {/* Headline figures */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-[1.6fr_repeat(5,1fr)]">
         <Card className="col-span-2 p-5 md:col-span-3 xl:col-span-1">
-          <p className="text-[0.8125rem] text-grey">Today’s revenue</p>
+          <p className="text-[0.9375rem] text-grey">Today’s revenue</p>
           {s ? (
             <>
               <p className="mt-2 text-[2.75rem] font-semibold leading-none tracking-tight text-bone sm:text-5xl">{moneyWhole(s.today.revenue)}</p>
-              <p className="mt-3 text-[0.8125rem] text-dim">
+              <p className="mt-3 text-[0.9375rem] text-dim">
                 {count(s.today.paid_orders)} paid of {count(s.today.orders_placed)} placed today
               </p>
             </>
@@ -103,7 +103,7 @@ export default function DashboardPage() {
 
       {/* Period filter scopes the two time charts below it. */}
       <div className="mb-3 mt-8 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-[0.9375rem] font-semibold text-bone">Trends</h2>
+        <h2 className="text-[1.0625rem] font-semibold text-bone">Trends</h2>
         <Segmented label="Chart period" value={interval} onChange={setChartInterval} options={PERIODS.map(({ value, label }) => ({ value, label }))} />
       </div>
 
@@ -184,7 +184,7 @@ export default function DashboardPage() {
 function Stat({ label, value, sub, to, alert }: { label: string; value?: string | false; sub?: string | false; to?: string; alert?: boolean }) {
   const body = (
     <>
-      <p className="flex items-center gap-2 text-[0.8125rem] text-grey">
+      <p className="flex items-center gap-2 text-[0.9375rem] text-grey">
         {alert && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-warn" aria-hidden="true" />}
         {label}
       </p>
@@ -210,13 +210,13 @@ function OnThePass({ summary }: { summary?: DashboardSummary }) {
           <li key={st} className="flex items-center gap-1">
             <Link to={`/orders?view=board`} className="flex items-baseline gap-2 rounded-lg px-2.5 py-1.5 hover:bg-smoke">
               <span className={cn('tabular text-lg font-semibold', (summary?.orders_by_status[st] ?? 0) > 0 ? 'text-bone' : 'text-dim')}>{summary ? count(summary.orders_by_status[st] ?? 0) : '–'}</span>
-              <span className="text-[0.8125rem] text-grey">{ORDER_STATUS_LABEL[st]}</span>
+              <span className="text-[0.9375rem] text-grey">{ORDER_STATUS_LABEL[st]}</span>
             </Link>
             {i < PASS.length - 1 && <span className="h-px w-4 bg-rule-strong" aria-hidden="true" />}
           </li>
         ))}
       </ol>
-      <Link to="/orders?view=board" className="text-[0.8125rem] font-medium text-ember-hot hover:underline">
+      <Link to="/orders?view=board" className="text-[0.9375rem] font-medium text-ember-hot hover:underline">
         Open the kitchen board
       </Link>
     </Card>
@@ -226,7 +226,7 @@ function OnThePass({ summary }: { summary?: DashboardSummary }) {
 function RecentOrders({ summary, className }: { summary?: DashboardSummary; className?: string }) {
   return (
     <Card className={className} aria-labelledby="recent-orders">
-      <CardHeader id="recent-orders" title="Recent orders" action={<Link to="/orders" className="text-[0.8125rem] font-medium text-ember-hot hover:underline">All orders</Link>} />
+      <CardHeader id="recent-orders" title="Recent orders" action={<Link to="/orders" className="text-[0.9375rem] font-medium text-ember-hot hover:underline">All orders</Link>} />
       <div className="pt-3">
         {!summary ? (
           <div className="space-y-2 px-5 pb-5">
@@ -276,7 +276,7 @@ function RecentOrders({ summary, className }: { summary?: DashboardSummary; clas
 function LowStock({ summary }: { summary?: DashboardSummary }) {
   return (
     <Card aria-labelledby="low-stock">
-      <CardHeader id="low-stock" title="Low-stock ingredients" description="At or below their minimum level" action={<Link to="/inventory?status=low" className="text-[0.8125rem] font-medium text-ember-hot hover:underline">Inventory</Link>} />
+      <CardHeader id="low-stock" title="Low-stock ingredients" description="At or below their minimum level" action={<Link to="/inventory?status=low" className="text-[0.9375rem] font-medium text-ember-hot hover:underline">Inventory</Link>} />
       <div className="px-5 pb-5 pt-4">
         {!summary ? (
           <Skeleton className="h-48" />
@@ -334,7 +334,7 @@ function TopBurgers({ summary, images, className }: { summary?: DashboardSummary
                   <span className="sr-only">Number {i + 1}: </span>
                   {b.name}
                 </p>
-                <p className="mt-1 text-[0.8125rem] text-grey">
+                <p className="mt-1 text-[0.9375rem] text-grey">
                   {count(b.quantity_sold)} sold, {moneyCompact(b.revenue)}
                 </p>
               </div>

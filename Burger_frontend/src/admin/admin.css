@@ -31,6 +31,12 @@
 
   --font-sans: 'Anybody Variable', system-ui, sans-serif;
 
+  /* Text scale, two steps up from Tailwind's defaults for readability (line heights keep their ratios). */
+  --text-xs: 0.875rem; /* 14px (default 12) */
+  --text-sm: 1rem; /* 16px (default 14) */
+  --text-base: 1.125rem; /* 18px (default 16) */
+  --text-lg: 1.25rem; /* 20px (default 18) */
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -45,7 +51,7 @@
 
   body {
     font-family: var(--font-sans);
-    font-size: 0.875rem;
+    font-size: 1rem;
     line-height: 1.5;
     font-variation-settings: 'wdth' 100;
     min-height: 100dvh;

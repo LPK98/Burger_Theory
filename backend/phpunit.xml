@@ -43,6 +43,10 @@
         <env name="PAYHERE_NOTIFY_URL" value=""/>
         <env name="PAYHERE_RETURN_URL" value=""/>
         <env name="PAYHERE_CANCEL_URL" value=""/>
+        <env name="STRIPE_SECRET_KEY" value=""/>
+        <env name="STRIPE_WEBHOOK_SECRET" value=""/>
+        <env name="STRIPE_SUCCESS_URL" value=""/>
+        <env name="STRIPE_CANCEL_URL" value=""/>
         <env name="CLOUDINARY_CLOUD_NAME" value=""/>
         <env name="CLOUDINARY_API_KEY" value=""/>
         <env name="CLOUDINARY_API_SECRET" value=""/>

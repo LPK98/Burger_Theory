@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** Audit log of gateway callbacks (valid or not). */
-#[Fillable(['payment_id', 'provider', 'reference', 'provider_status_code', 'signature_valid', 'outcome', 'outcome_reason', 'payload', 'ip_address'])]
+#[Fillable(['payment_id', 'provider', 'provider_event_id', 'reference', 'provider_status_code', 'signature_valid', 'outcome', 'outcome_reason', 'payload', 'ip_address'])]
 class PaymentEvent extends Model
 {
     public const UPDATED_AT = null;

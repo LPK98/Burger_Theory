@@ -31,7 +31,7 @@ class OrderFactory extends Factory
             'payment_method' => PaymentMethod::CashOnDelivery,
             'payment_status' => PaymentStatus::Pending,
             'fulfilment_type' => FulfilmentType::Pickup,
-            'currency' => 'LKR',
+            'currency' => config('restaurant.currency'),
             'subtotal' => 200000,
             'discount_total' => 0,
             'delivery_fee' => 0,

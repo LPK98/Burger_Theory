@@ -2,7 +2,6 @@
 
 namespace App\Notifications;
 
-use App\Enums\PaymentMethod;
 use App\Models\Order;
 use App\Support\Money;
 use Illuminate\Bus\Queueable;
@@ -40,7 +39,7 @@ class OrderPlaced extends Notification implements ShouldQueue
 
         $mail->line('Total: '.Money::format($order->total, $order->currency));
 
-        return $order->payment_method === PaymentMethod::PayHere
+        return $order->payment_method->isOnline()
             ? $mail->line('Your order goes to the kitchen as soon as your online payment is confirmed.')
             : $mail->line('Please have the cash ready when your order arrives.');
     }

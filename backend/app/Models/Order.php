@@ -100,7 +100,7 @@ class Order extends Model
 
     public function isAwaitingOnlinePayment(): bool
     {
-        return $this->payment_method === PaymentMethod::PayHere
+        return $this->payment_method->isOnline()
             && $this->status === OrderStatus::Pending
             && $this->payment_status !== PaymentStatus::Paid;
     }

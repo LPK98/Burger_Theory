@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Services\Inventory\IngredientService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -98,8 +99,8 @@ class DemoActivitySeeder extends Seeder
         $this->command?->info("Seeded {$customers->count()} demo customers and {$sequence} demo orders.");
     }
 
-    /** @return \Illuminate\Support\Collection<int, User> */
-    private function customers(CarbonImmutable $today): \Illuminate\Support\Collection
+    /** @return Collection<int, User> */
+    private function customers(CarbonImmutable $today): Collection
     {
         return collect(range(1, 30))->map(function (int $n) use ($today) {
             $first = self::FIRST_NAMES[$n - 1];
@@ -149,7 +150,7 @@ class DemoActivitySeeder extends Seeder
 
         $delivery = mt_rand(1, 100) <= 62;
         $payhere = mt_rand(1, 100) <= 55;
-        $fee = $delivery && $subtotal < 500000 ? 35000 : 0;
+        $fee = $delivery && $subtotal < 5000 ? 350 : 0;
         $status = $this->finalStatus($today, $placedAt, $delivery);
         $void = $status->isVoid();
 
@@ -173,7 +174,7 @@ class DemoActivitySeeder extends Seeder
             'payment_method' => $payhere ? PaymentMethod::PayHere : PaymentMethod::CashOnDelivery,
             'payment_status' => $paymentStatus,
             'fulfilment_type' => $delivery ? FulfilmentType::Delivery : FulfilmentType::Pickup,
-            'currency' => 'LKR',
+            'currency' => config('restaurant.currency'),
             'subtotal' => $subtotal,
             'discount_total' => 0,
             'delivery_fee' => $fee,
@@ -211,7 +212,7 @@ class DemoActivitySeeder extends Seeder
             'method' => $order->payment_method,
             'status' => $paymentStatus,
             'amount' => $order->total,
-            'currency' => 'LKR',
+            'currency' => config('restaurant.currency'),
             'reference' => "{$order->order_number}-1",
             'provider_payment_id' => $payhere && $paidAt !== null ? (string) (320000000000 + $sequence) : null,
             'provider_status_code' => $payhere && $paidAt !== null ? 2 : null,

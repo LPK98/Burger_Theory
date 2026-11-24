@@ -8,6 +8,8 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentEvent;
 use App\Services\Order\OrderNotifier;
+use App\Services\Payment\NotificationOutcome;
+use App\Services\Payment\PaymentSettlement;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -44,6 +46,7 @@ class PayHereNotificationHandler
     public function __construct(
         private readonly PayHereConfig $config,
         private readonly OrderNotifier $notifier,
+        private readonly PaymentSettlement $settlement,
     ) {}
 
     /**
@@ -146,28 +149,7 @@ class PayHereNotificationHandler
 
         switch ($statusCode) {
             case self::STATUS_SUCCESS:
-                if (in_array($payment->status, [PaymentStatus::Paid, PaymentStatus::RefundRequired, PaymentStatus::ChargedBack], true)) {
-                    return [NotificationOutcome::Duplicate, 'already_paid', false];
-                }
-
-                $alreadyPaidElsewhere = $order->payment_status === PaymentStatus::Paid
-                    || $order->payments()->where('status', PaymentStatus::Paid->value)->whereKeyNot($payment->id)->exists();
-
-                if ($order->status->isVoid() || $alreadyPaidElsewhere) {
-                    // Money arrived for an order we will not fulfil (or have been paid for twice).
-                    $payment->update($provider + ['status' => PaymentStatus::RefundRequired, 'paid_at' => now()]);
-                    if (! $alreadyPaidElsewhere) {
-                        $order->update(['payment_status' => PaymentStatus::RefundRequired]);
-                    }
-                    Log::warning('PayHere payment received that must be refunded.', ['order' => $order->order_number, 'reference' => $payment->reference]);
-
-                    return [NotificationOutcome::Processed, $alreadyPaidElsewhere ? 'refund_required_duplicate_payment' : 'refund_required_order_void', false];
-                }
-
-                $payment->update($provider + ['status' => PaymentStatus::Paid, 'paid_at' => now()]);
-                $order->update(['payment_status' => PaymentStatus::Paid, 'paid_at' => now()]);
-
-                return [NotificationOutcome::Processed, null, true];
+                return $this->settlement->succeed($payment, $order, $provider, 'PayHere');
 
             case self::STATUS_PENDING:
                 if ($payment->status !== PaymentStatus::Pending) {
@@ -180,31 +162,11 @@ class PayHereNotificationHandler
             case self::STATUS_CANCELLED:
             case self::STATUS_FAILED:
                 $target = $statusCode === self::STATUS_FAILED ? PaymentStatus::Failed : PaymentStatus::Cancelled;
-                if ($payment->status === $target) {
-                    return [NotificationOutcome::Duplicate, null, false];
-                }
-                if ($payment->status !== PaymentStatus::Pending) {
-                    return [NotificationOutcome::Ignored, 'stale_'.$target->value, false];
-                }
-                $payment->update($provider + ['status' => $target]);
-                if ($order->payment_status === PaymentStatus::Pending) {
-                    $order->update(['payment_status' => $target]);
-                }
 
-                return [NotificationOutcome::Processed, null, false];
+                return $this->settlement->fail($payment, $order, $target, $provider);
 
             case self::STATUS_CHARGEDBACK:
-                if ($payment->status === PaymentStatus::ChargedBack) {
-                    return [NotificationOutcome::Duplicate, null, false];
-                }
-                if ($payment->status !== PaymentStatus::Paid) {
-                    return [NotificationOutcome::Ignored, 'chargeback_on_unpaid', false];
-                }
-                $payment->update($provider + ['status' => PaymentStatus::ChargedBack]);
-                $order->update(['payment_status' => PaymentStatus::ChargedBack]);
-                Log::warning('PayHere chargeback received.', ['order' => $order->order_number]);
-
-                return [NotificationOutcome::Processed, null, false];
+                return $this->settlement->chargeBack($payment, $order, $provider, 'PayHere');
 
             default:
                 return [NotificationOutcome::Ignored, 'unknown_status_code', false];

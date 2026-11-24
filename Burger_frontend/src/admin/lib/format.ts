@@ -2,33 +2,36 @@ import type { MovementReason, OrderStatus, PaymentMethod, PaymentStatus, Unit } 
 
 export const TIMEZONE = 'Asia/Colombo'
 
-const lkr = new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 2 })
-const lkrWhole = new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0 })
-const lkrCompact = new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', currencyDisplay: 'narrowSymbol', notation: 'compact', maximumFractionDigits: 1 })
-const integer = new Intl.NumberFormat('en-LK', { maximumFractionDigits: 0 })
-const compact = new Intl.NumberFormat('en-LK', { notation: 'compact', maximumFractionDigits: 1 })
-const qty = new Intl.NumberFormat('en-LK', { maximumFractionDigits: 3 })
+/** The restaurant's currency (the API's `currency`). Money from the API is integer cents of it. */
+export const CURRENCY = 'USD'
 
-/** 145000 → "Rs 1,450.00" */
-export const money = (cents: number | null | undefined) => (cents == null ? '—' : lkr.format(cents / 100))
-/** 145000 → "Rs 1,450" */
-export const moneyWhole = (cents: number | null | undefined) => (cents == null ? '—' : lkrWhole.format(Math.round(cents / 100)))
-/** 246569000 → "Rs 2.5M" (for axes and big figures) */
-export const moneyCompact = (cents: number) => (Math.abs(cents) < 10_000_00 ? lkrWhole.format(Math.round(cents / 100)) : lkrCompact.format(cents / 100))
+const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: CURRENCY, minimumFractionDigits: 2 })
+const usdWhole = new Intl.NumberFormat('en-US', { style: 'currency', currency: CURRENCY, maximumFractionDigits: 0 })
+const usdCompact = new Intl.NumberFormat('en-US', { style: 'currency', currency: CURRENCY, notation: 'compact', maximumFractionDigits: 1 })
+const integer = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
+const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 })
+const qty = new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 })
+
+/** 1450 → "$14.50" */
+export const money = (cents: number | null | undefined) => (cents == null ? '—' : usd.format(cents / 100))
+/** 1450 → "$15" */
+export const moneyWhole = (cents: number | null | undefined) => (cents == null ? '—' : usdWhole.format(Math.round(cents / 100)))
+/** 246569000 → "$2.5M" (for axes and big figures) */
+export const moneyCompact = (cents: number) => (Math.abs(cents) < 10_000_00 ? usdWhole.format(Math.round(cents / 100)) : usdCompact.format(cents / 100))
 export const count = (n: number) => integer.format(n)
 export const countCompact = (n: number) => (Math.abs(n) < 10_000 ? integer.format(n) : compact.format(n))
 export const quantity = (n: number, unit?: Unit) => `${qty.format(n)}${unit ? ` ${unit}` : ''}`
 export const percent = (ratio: number, digits = 1) => `${(ratio * 100).toFixed(digits)}%`
 
-/** Rupees typed in a form ("1,450.50") → cents (145050). Returns null when blank or invalid. */
-export function rupeesToCents(input: string): number | null {
-  const cleaned = input.replace(/[,\s]/g, '').replace(/^rs\.?/i, '')
+/** Dollars typed in a form ("1,450.50" or "$14.50") → cents (145050 / 1450). Returns null when blank or invalid. */
+export function dollarsToCents(input: string): number | null {
+  const cleaned = input.replace(/[,\s]/g, '').replace(/^(us)?\$/i, '')
   if (cleaned === '' || !/^\d+(\.\d{0,2})?$/.test(cleaned)) return null
   const [whole, fraction = ''] = cleaned.split('.')
   return Number(whole) * 100 + Number(fraction.padEnd(2, '0'))
 }
 
-export const centsToRupees = (cents: number | null | undefined) => (cents == null ? '' : (cents / 100).toFixed(2).replace(/\.00$/, ''))
+export const centsToDollars = (cents: number | null | undefined) => (cents == null ? '' : (cents / 100).toFixed(2).replace(/\.00$/, ''))
 
 const dateFmt = new Intl.DateTimeFormat('en-GB', { timeZone: TIMEZONE, day: 'numeric', month: 'short', year: 'numeric' })
 const dateTimeFmt = new Intl.DateTimeFormat('en-GB', { timeZone: TIMEZONE, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })
@@ -99,6 +102,7 @@ export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
 }
 
 export const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = {
+  stripe: 'Stripe (card)',
   payhere: 'PayHere',
   cod: 'Cash on delivery',
 }

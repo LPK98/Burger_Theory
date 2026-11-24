@@ -10,6 +10,7 @@ use App\Exceptions\OrderException;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Coupon\CouponService;
+use App\Services\Payment\Stripe\StripeCheckoutService;
 use App\Services\Product\InventoryService;
 use App\Services\Settings\RestaurantSettings;
 use Closure;
@@ -24,6 +25,7 @@ class OrderWorkflowService
         private readonly CouponService $coupons,
         private readonly OrderNotifier $notifier,
         private readonly RestaurantSettings $settings,
+        private readonly StripeCheckoutService $stripeCheckout,
     ) {}
 
     /**
@@ -44,7 +46,7 @@ class OrderWorkflowService
             }
 
             // Food is not prepared for an online order that has not been paid.
-            if ($to === OrderStatus::Confirmed && $locked->payment_method === PaymentMethod::PayHere && $locked->payment_status !== PaymentStatus::Paid) {
+            if ($to === OrderStatus::Confirmed && $locked->payment_method->isOnline() && $locked->payment_status !== PaymentStatus::Paid) {
                 throw OrderException::paymentRequired();
             }
 
@@ -75,6 +77,11 @@ class OrderWorkflowService
 
             return $locked;
         });
+
+        if ($to->isVoid() && $updated->payment_method === PaymentMethod::Stripe) {
+            // Outside the transaction: an HTTP call must not hold the order lock.
+            $this->stripeCheckout->expireOpenSessions($updated);
+        }
 
         $this->notifier->statusChanged($updated);
 
@@ -107,7 +114,7 @@ class OrderWorkflowService
         $cancelled = 0;
 
         Order::query()
-            ->where('payment_method', PaymentMethod::PayHere->value)
+            ->whereIn('payment_method', PaymentMethod::onlineValues())
             ->where('status', OrderStatus::Pending->value)
             ->where('payment_status', '!=', PaymentStatus::Paid->value)
             ->where('created_at', '<', now()->subMinutes($olderThanMinutes))
@@ -140,7 +147,7 @@ class OrderWorkflowService
 
         $paid = $order->payments()->where('status', PaymentStatus::Paid->value)->exists();
         if ($paid) {
-            // Refunds are issued from the PayHere merchant portal; flag the order so staff see it.
+            // Refunds are issued from the PayHere merchant portal or the Stripe Dashboard; flag the order so staff see it.
             $order->payments()->where('status', PaymentStatus::Paid->value)->update(['status' => PaymentStatus::RefundRequired->value]);
             $order->update(['payment_status' => PaymentStatus::RefundRequired]);
             Log::warning('Paid order voided; refund required.', ['order' => $order->order_number]);

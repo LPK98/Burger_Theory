@@ -57,7 +57,7 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => 'REST API for the Burger Theory restaurant: menu, cart, orders, PayHere and cash-on-delivery payments, and admin management. All money values are integers in minor units (cents) of LKR. Authenticate with `Authorization: Bearer <token>` from /login or /register. Guest carts use the `X-Cart-Token` header.',
+        'description' => 'REST API for the Burger Theory restaurant: menu, cart, orders, Stripe, PayHere and cash-on-delivery payments, and admin management. All money values are integers in minor units (cents) of USD. Authenticate with `Authorization: Bearer <token>` from /login or /register. Guest carts use the `X-Cart-Token` header.',
     ],
 
     'ui' => [

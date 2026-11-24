@@ -33,7 +33,7 @@ class DashboardTest extends TestCase
 
         $response = $this->getJson('/api/v1/admin/dashboard', $this->bearer($this->admin()))->assertOk();
 
-        $response->assertJsonPath('data.currency', 'LKR')
+        $response->assertJsonPath('data.currency', 'USD')
             ->assertJsonPath('data.total_revenue', 500000)
             ->assertJsonPath('data.paid_orders', 2)
             ->assertJsonPath('data.total_orders', 6)

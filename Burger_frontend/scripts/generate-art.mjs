@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * BUN THEORY — illustration generator
+ * BURGER THEORY — illustration generator
  * -----------------------------------
  * Draws every burger illustration used on the site as standalone, transparent SVG files.
  *

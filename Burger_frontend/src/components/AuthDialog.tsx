@@ -357,7 +357,7 @@ interface FieldProps extends Omit<ComponentProps<'input'>, 'id'> {
   optional?: string
 }
 
-function Field({ label, hint, error, optional, type = 'text', className, ...rest }: FieldProps) {
+export function Field({ label, hint, error, optional, type = 'text', className, ...rest }: FieldProps) {
   const id = useId()
   const [revealed, setRevealed] = useState(false)
   const isPassword = type === 'password'

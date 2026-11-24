@@ -1,9 +1,9 @@
 {
-  "name": "bun-theory",
+  "name": "burger-theory",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "BUN THEORY — a cinematic, scroll-driven burger restaurant website.",
+  "description": "BURGER THEORY — a cinematic, scroll-driven burger restaurant website.",
   "scripts": {
     "predev": "node scripts/burger-check.mjs --quiet",
     "dev": "vite",

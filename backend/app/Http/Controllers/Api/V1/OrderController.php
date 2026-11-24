@@ -46,7 +46,8 @@ class OrderController extends Controller
      * Send an `Idempotency-Key` header (e.g. a UUID per checkout attempt): repeating the
      * request with the same key returns the original order (200) instead of a new one (201).
      *
-     * For `payhere`, continue with `POST /payments/payhere`. For `cod`, the order is complete.
+     * For `payhere`, continue with `POST /payments/payhere`; for `stripe`, with `POST /payments/stripe`.
+     * For `cod`, the order is complete.
      */
     public function store(PlaceOrderRequest $request, OrderPlacementService $placement): JsonResponse
     {
@@ -55,8 +56,12 @@ class OrderController extends Controller
         return (new OrderResource($order->load(self::RELATIONS)))
             ->additional(['meta' => [
                 'created' => $created,
-                'next_action' => $order->payment_method === PaymentMethod::PayHere && $order->isAwaitingOnlinePayment()
-                    ? 'payhere_checkout'
+                'next_action' => $order->isAwaitingOnlinePayment()
+                    ? match ($order->payment_method) {
+                        PaymentMethod::PayHere => 'payhere_checkout',
+                        PaymentMethod::Stripe => 'stripe_checkout',
+                        default => null,
+                    }
                     : null,
             ]])
             ->response()

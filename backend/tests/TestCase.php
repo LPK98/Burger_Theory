@@ -9,6 +9,8 @@ use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use RuntimeException;
+use Stripe\ApiRequestor;
+use Tests\Fakes\FakeStripeHttpClient;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -27,6 +29,54 @@ abstract class TestCase extends BaseTestCase
         }
 
         return $app;
+    }
+
+    protected function tearDown(): void
+    {
+        // The SDK's HTTP client is static; never let a fake leak into the next test.
+        ApiRequestor::setHttpClient(null);
+
+        parent::tearDown();
+    }
+
+    protected const STRIPE_WEBHOOK_SECRET = 'whsec_test_secret';
+
+    /** Configures Stripe with fake keys and routes the real SDK to an in-memory fake API. */
+    protected function fakeStripe(): FakeStripeHttpClient
+    {
+        config([
+            'services.stripe.secret_key' => 'sk_test_fake_key',
+            'services.stripe.webhook_secret' => self::STRIPE_WEBHOOK_SECRET,
+        ]);
+        $fake = new FakeStripeHttpClient;
+        ApiRequestor::setHttpClient($fake);
+
+        return $fake;
+    }
+
+    /**
+     * Posts a webhook event signed the way Stripe signs it (HMAC-SHA256 of "timestamp.body").
+     *
+     * @param  array<string, mixed>  $object
+     */
+    protected function postStripeEvent(string $type, array $object, ?string $secret = null, ?string $eventId = null): TestResponse
+    {
+        $body = json_encode([
+            'id' => $eventId ?? 'evt_test_'.Str::random(16),
+            'object' => 'event',
+            'type' => $type,
+            'livemode' => false,
+            'created' => time(),
+            'api_version' => '2026-11-18.endive',
+            'data' => ['object' => $object],
+        ]);
+        $timestamp = time();
+        $signature = hash_hmac('sha256', "{$timestamp}.{$body}", $secret ?? self::STRIPE_WEBHOOK_SECRET);
+
+        return $this->call('POST', '/api/v1/payments/stripe/webhook', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_STRIPE_SIGNATURE' => "t={$timestamp},v1={$signature}",
+        ], $body);
     }
 
     protected function customer(array $attributes = []): User
@@ -74,7 +124,7 @@ abstract class TestCase extends BaseTestCase
             'order_id' => $reference,
             'payment_id' => '3200'.Str::random(8),
             'payhere_amount' => $amount,
-            'payhere_currency' => 'LKR',
+            'payhere_currency' => 'USD',
             'status_code' => (string) $statusCode,
             'status_message' => $statusCode === 2 ? 'Successfully completed the payment.' : 'Status '.$statusCode,
             'method' => 'VISA',

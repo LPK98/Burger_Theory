@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Services\Payment\PayHere\PayHereConfig;
+use App\Services\Payment\Stripe\StripeConfig;
 use App\Services\Product\Images\CloudinaryImageStorage;
 use App\Services\Product\Images\ImageStorage;
 use App\Services\Settings\RestaurantSettings;
@@ -22,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->scoped(RestaurantSettings::class);
         $this->app->singleton(PayHereConfig::class);
+        $this->app->singleton(StripeConfig::class);
         $this->app->singleton(ImageStorage::class, CloudinaryImageStorage::class);
     }
 
@@ -56,5 +58,8 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('orders', fn (Request $request) => Limit::perMinute(10)->by('orders:'.($request->user()?->id ?: $request->ip())));
 
         RateLimiter::for('payhere-notify', fn (Request $request) => Limit::perMinute(120)->by('payhere:'.$request->ip()));
+
+        // Stripe sends bursts (several events per checkout, plus retries) from a few IPs.
+        RateLimiter::for('stripe-webhook', fn (Request $request) => Limit::perMinute(300)->by('stripe:'.$request->ip()));
     }
 }

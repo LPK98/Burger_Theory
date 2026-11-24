@@ -21,8 +21,8 @@ class ProductCatalogueTest extends TestCase
 
         $response->assertJsonCount(9, 'data')
             ->assertJsonPath('data.0.slug', 'theory-classic')
-            ->assertJsonPath('data.0.price', 145000)
-            ->assertJsonPath('data.0.currency', 'LKR')
+            ->assertJsonPath('data.0.price', 1450)
+            ->assertJsonPath('data.0.currency', 'USD')
             ->assertJsonPath('data.0.badge', 'Signature')
             ->assertJsonPath('data.0.image.url', '/images/products/theory-classic.svg')
             ->assertJsonStructure(['data' => [['id', 'slug', 'name', 'description', 'price', 'is_available', 'in_stock', 'max_quantity', 'categories', 'rating']], 'links', 'meta']);
@@ -116,8 +116,8 @@ class ProductCatalogueTest extends TestCase
     {
         $this->getJson('/api/v1/restaurant')
             ->assertOk()
-            ->assertJsonPath('data.currency', 'LKR')
-            ->assertJsonPath('data.delivery_fee', 35000)
+            ->assertJsonPath('data.currency', 'USD')
+            ->assertJsonPath('data.delivery_fee', 350)
             ->assertJsonPath('data.payment_methods', ['payhere', 'cod']);
     }
 }

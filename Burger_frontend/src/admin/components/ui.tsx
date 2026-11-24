@@ -15,7 +15,7 @@ const variants: Record<Variant, string> = {
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'h-8 gap-1.5 px-3 text-[0.8125rem]',
+  sm: 'h-8 gap-1.5 px-3 text-[0.9375rem]',
   md: 'h-10 gap-2 px-4 text-sm',
 }
 
@@ -77,19 +77,19 @@ interface FieldShell {
 function FieldFrame({ id, label, hint, error, optional, className, hideLabel, children }: FieldShell & { id: string; children: ReactNode }) {
   return (
     <div className={className}>
-      <label htmlFor={id} className={cn('mb-1.5 flex items-baseline justify-between gap-3 text-[0.8125rem] font-medium text-bone/85', hideLabel && 'sr-only')}>
+      <label htmlFor={id} className={cn('mb-1.5 flex items-baseline justify-between gap-3 text-[0.9375rem] font-medium text-bone/85', hideLabel && 'sr-only')}>
         {label}
         {optional && <span className="font-normal text-dim">Optional</span>}
       </label>
       {children}
       {error ? (
-        <p id={`${id}-error`} className="mt-1.5 flex items-start gap-1.5 text-[0.8125rem] text-[#ff8a83]">
+        <p id={`${id}-error`} className="mt-1.5 flex items-start gap-1.5 text-[0.9375rem] text-[#ff8a83]">
           <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           {error}
         </p>
       ) : (
         hint && (
-          <p id={`${id}-hint`} className="mt-1.5 text-[0.8125rem] text-dim">
+          <p id={`${id}-hint`} className="mt-1.5 text-[0.9375rem] text-dim">
             {hint}
           </p>
         )
@@ -199,7 +199,7 @@ export function Switch({ checked, onChange, label, description, disabled }: { ch
           {label}
         </label>
         {description && (
-          <p id={`${id}-desc`} className="mt-0.5 text-[0.8125rem] text-dim">
+          <p id={`${id}-desc`} className="mt-0.5 text-[0.9375rem] text-dim">
             {description}
           </p>
         )}
@@ -247,7 +247,7 @@ export function Segmented<T extends string>({ value, onChange, options, label, s
           onClick={() => onChange(o.value)}
           className={cn(
             'rounded-md font-medium transition-colors',
-            size === 'sm' ? 'h-7 px-2.5 text-[0.8125rem]' : 'h-8 px-3 text-sm',
+            size === 'sm' ? 'h-7 px-2.5 text-[0.9375rem]' : 'h-8 px-3 text-sm',
             value === o.value ? 'bg-smoke-2 text-bone shadow-[inset_0_0_0_1px_rgb(255_240_228/0.1)]' : 'text-grey hover:text-bone',
           )}
         >
@@ -272,10 +272,10 @@ export function CardHeader({ title, description, action, id }: { title: ReactNod
   return (
     <header className="flex flex-wrap items-start justify-between gap-3 px-5 pt-5">
       <div className="min-w-0">
-        <h2 id={id} className="text-[0.9375rem] font-semibold text-bone">
+        <h2 id={id} className="text-[1.0625rem] font-semibold text-bone">
           {title}
         </h2>
-        {description && <p className="mt-0.5 text-[0.8125rem] text-dim">{description}</p>}
+        {description && <p className="mt-0.5 text-[0.9375rem] text-dim">{description}</p>}
       </div>
       {action}
     </header>
@@ -331,7 +331,7 @@ export function EmptyState({ icon, title, children, action }: { icon?: ReactNode
   return (
     <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
       {icon && <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-ember/10 text-ember">{icon}</div>}
-      <p className="text-[0.9375rem] font-semibold text-bone">{title}</p>
+      <p className="text-[1.0625rem] font-semibold text-bone">{title}</p>
       {children && <p className="mt-1 max-w-[42ch] text-sm text-grey">{children}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
@@ -371,9 +371,9 @@ export function Notice({ tone = 'warn', children, action }: { tone?: 'warn' | 'i
 export function Pagination({ page, lastPage, total, from, to, onPage, noun = 'results' }: { page: number; lastPage: number; total: number; from: number | null; to: number | null; onPage: (p: number) => void; noun?: string }) {
   if (total === 0) return null
   return (
-    <nav aria-label="Pagination" className="flex flex-wrap items-center justify-between gap-3 border-t border-rule px-5 py-3 text-[0.8125rem] text-grey">
+    <nav aria-label="Pagination" className="flex flex-wrap items-center justify-between gap-3 border-t border-rule px-5 py-3 text-[0.9375rem] text-grey">
       <p className="tabular">
-        {from}–{to} of {total.toLocaleString('en-LK')} {noun}
+        {from}–{to} of {total.toLocaleString('en-US')} {noun}
       </p>
       <div className="flex items-center gap-1">
         <IconButton label="Previous page" disabled={page <= 1} onClick={() => onPage(page - 1)}>

@@ -44,25 +44,25 @@ class CartTest extends TestCase
 
     public function test_totals_include_delivery_fee_until_free_delivery_threshold(): void
     {
-        $product = Product::factory()->price(145000)->create();
+        $product = Product::factory()->price(1450)->create();
         $token = $this->postJson('/api/v1/cart/items', ['product_id' => $product->id, 'quantity' => 1])->json('data.token');
         $headers = ['X-Cart-Token' => $token];
 
-        // Default settings: LKR 350 delivery, free from LKR 5,000.
+        // Default settings: $3.50 delivery, free from $50.
         $this->getJson('/api/v1/cart', $headers)
-            ->assertJsonPath('data.delivery_fee', 35000)
-            ->assertJsonPath('data.total', 180000);
+            ->assertJsonPath('data.delivery_fee', 350)
+            ->assertJsonPath('data.total', 1800);
 
         $this->getJson('/api/v1/cart?fulfilment_type=pickup', $headers)
             ->assertJsonPath('data.delivery_fee', 0)
-            ->assertJsonPath('data.total', 145000);
+            ->assertJsonPath('data.total', 1450);
 
         $item = $this->getJson('/api/v1/cart', $headers)->json('data.items.0.id');
         $this->patchJson("/api/v1/cart/items/{$item}", ['quantity' => 4], $headers)
             ->assertOk()
-            ->assertJsonPath('data.subtotal', 580000)
+            ->assertJsonPath('data.subtotal', 5800)
             ->assertJsonPath('data.delivery_fee', 0)
-            ->assertJsonPath('data.total', 580000);
+            ->assertJsonPath('data.total', 5800);
     }
 
     public function test_quantities_are_validated(): void
@@ -184,9 +184,9 @@ class CartTest extends TestCase
 
     public function test_coupon_is_validated_and_discount_applied(): void
     {
-        Coupon::factory()->percentage(10)->create(['code' => 'WELCOME10', 'min_order_amount' => 200000]);
-        Coupon::factory()->fixed(30000)->create(['code' => 'OLD', 'expires_at' => now()->subDay()]);
-        $product = Product::factory()->price(145000)->create();
+        Coupon::factory()->percentage(10)->create(['code' => 'WELCOME10', 'min_order_amount' => 2000]);
+        Coupon::factory()->fixed(300)->create(['code' => 'OLD', 'expires_at' => now()->subDay()]);
+        $product = Product::factory()->price(1450)->create();
 
         $token = $this->postJson('/api/v1/cart/items', ['product_id' => $product->id])->json('data.token');
         $headers = ['X-Cart-Token' => $token];
@@ -194,7 +194,7 @@ class CartTest extends TestCase
         $this->postJson('/api/v1/cart/coupon', ['code' => 'nope'], $headers)->assertUnprocessable()->assertJsonPath('code', 'coupon_not_found');
         $this->postJson('/api/v1/cart/coupon', ['code' => 'old'], $headers)->assertUnprocessable()->assertJsonPath('code', 'coupon_expired');
         $this->postJson('/api/v1/cart/coupon', ['code' => 'welcome10'], $headers)
-            ->assertUnprocessable()->assertJsonPath('code', 'coupon_minimum_not_met')->assertJsonPath('details.minimum_order_amount', 200000);
+            ->assertUnprocessable()->assertJsonPath('code', 'coupon_minimum_not_met')->assertJsonPath('details.minimum_order_amount', 2000);
 
         $item = $this->getJson('/api/v1/cart', $headers)->json('data.items.0.id');
         $this->patchJson("/api/v1/cart/items/{$item}", ['quantity' => 2], $headers);
@@ -203,10 +203,10 @@ class CartTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.coupon.code', 'WELCOME10')
             ->assertJsonPath('data.coupon.is_valid', true)
-            ->assertJsonPath('data.subtotal', 290000)
-            ->assertJsonPath('data.discount_total', 29000)
-            ->assertJsonPath('data.delivery_fee', 35000)
-            ->assertJsonPath('data.total', 296000);
+            ->assertJsonPath('data.subtotal', 2900)
+            ->assertJsonPath('data.discount_total', 290)
+            ->assertJsonPath('data.delivery_fee', 350)
+            ->assertJsonPath('data.total', 2960);
 
         // Dropping below the coupon minimum keeps the code but stops the discount.
         $this->patchJson("/api/v1/cart/items/{$item}", ['quantity' => 1], $headers)

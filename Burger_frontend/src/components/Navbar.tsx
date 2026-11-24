@@ -126,7 +126,7 @@ export function Navbar() {
           <a
             href="#home"
             onClick={onLink('home')}
-            aria-label="Bun Theory, back to the top"
+            aria-label="Burger Theory, back to the top"
             className="logo-link col-start-1 justify-self-start rounded-sm"
             data-nav-in
           >
@@ -144,12 +144,12 @@ export function Navbar() {
                       onClick={onLink(link.id)}
                       aria-current={isActive ? 'true' : undefined}
                       className={cn(
-                        'group ui inline-flex py-3 text-[0.75rem] uppercase tracking-[0.15em] transition-colors duration-300',
+                        'group ui inline-flex py-3 text-[0.9375rem] uppercase tracking-[0.12em] transition-colors duration-300',
                         isActive ? 'text-cream' : 'text-cream/60 hover:text-cream',
                       )}
                     >
                       {/* Same roll as the buttons; the negative margin drops the tracking after the last letter. */}
-                      <span className="roll -mr-[0.15em]">
+                      <span className="roll -mr-[0.12em]">
                         <span>{link.label}</span>
                         <span aria-hidden="true">{link.label}</span>
                       </span>
@@ -188,7 +188,7 @@ export function Navbar() {
               </span>
             </button>
             <div className="ml-1 hidden sm:block" data-nav-in>
-              <Button size="sm" shape="pill" onClick={() => goTo('menu')}>
+              <Button size="sm" className="h-11" onClick={() => goTo('menu')}>
                 Order now
               </Button>
             </div>

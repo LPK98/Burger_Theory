@@ -15,6 +15,9 @@ import type { PaymentMethod, PaymentStatus } from '../lib/types'
 
 const FILTERS = ['payment', 'search', 'method', 'status', 'date_from', 'date_to'] as const
 
+/** Who confirms a payment of each method. */
+const PROVIDER: Record<PaymentMethod, string> = { stripe: 'Stripe', payhere: 'PayHere', cod: 'Staff' }
+
 export default function PaymentsPage() {
   const { values: f, set, page } = useUrlFilters(FILTERS)
   const applySearch = useCallback((v: string) => set({ search: v }), [set])
@@ -26,17 +29,17 @@ export default function PaymentsPage() {
 
   return (
     <>
-      <PageHeader title="Payments" description="Every PayHere and cash-on-delivery payment. PayHere payments count as paid only after the server verifies PayHere’s signed notification." />
+      <PageHeader title="Payments" description="Every Stripe, PayHere and cash-on-delivery payment. Online payments count as paid only after the server verifies them with the payment provider." />
 
       <div className="mb-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           { label: 'Paid', value: s && moneyWhole(s.paid_amount), sub: s && `${count(s.paid)} payments` },
           { label: 'Awaiting payment', value: s && moneyWhole(s.pending_amount), sub: s && `${count(s.pending)} payments` },
-          { label: 'Failed or cancelled', value: s && count(s.failed), sub: 'Customers can retry PayHere' },
+          { label: 'Failed or cancelled', value: s && count(s.failed), sub: 'Customers can retry online payment' },
           { label: 'Needs attention', value: s && count(s.needs_attention), sub: 'Refunds owed or chargebacks', alert: !!s && s.needs_attention > 0 },
         ].map((t) => (
           <Card key={t.label} className={cn('p-5', t.alert && 'border-serious/40')}>
-            <p className="text-[0.8125rem] text-grey">{t.label}</p>
+            <p className="text-[0.9375rem] text-grey">{t.label}</p>
             {t.value ? <p className="mt-2 text-2xl font-semibold text-bone">{t.value}</p> : <Skeleton className="mt-2 h-7 w-24" />}
             <p className="mt-1.5 text-xs text-dim">{t.sub}</p>
           </Card>
@@ -46,7 +49,7 @@ export default function PaymentsPage() {
 
       <Card>
         <div className="flex flex-wrap items-end gap-2 border-b border-rule p-4">
-          <SearchInput className="w-full sm:w-72" label="Search payments" placeholder="Reference, order, customer or PayHere ID" value={search} onChange={setSearch} />
+          <SearchInput className="w-full sm:w-72" label="Search payments" placeholder="Reference, order, customer or provider ID" value={search} onChange={setSearch} />
           <FilterSelect label="Method" value={f.method} onChange={(e) => set({ method: e.target.value })} className="w-[calc(50%-0.25rem)] sm:w-44">
             <option value="">Any method</option>
             {(Object.keys(PAYMENT_METHOD_LABEL) as PaymentMethod[]).map((m) => (
@@ -105,7 +108,7 @@ export default function PaymentsPage() {
                       >
                         {p.reference}
                       </button>
-                      {p.provider_payment_id && <p className="text-xs text-dim">PayHere {p.provider_payment_id}</p>}
+                      {p.provider_payment_id && <p className="text-xs text-dim">{PROVIDER[p.method]} {p.provider_payment_id}</p>}
                     </td>
                     <td className={td}>
                       <p className="text-bone">{p.order?.order_number}</p>
@@ -140,8 +143,12 @@ function PaymentDrawer({ reference, onClose }: { reference: string | null; onClo
     ? [
         ['Amount', <span key="amount" className="tabular">{money(p.amount)}</span>],
         ['Method', `${PAYMENT_METHOD_LABEL[p.method]}${p.provider_method ? `, ${p.provider_method}` : ''}${p.card_mask ? ` •••• ${p.card_mask.slice(-4)}` : ''}`],
-        ['PayHere payment ID', p.provider_payment_id ?? '—'],
-        ['PayHere status', p.status_message ?? (p.provider_status_code !== null ? `Code ${p.provider_status_code}` : '—')],
+        ...(p.method === 'cod'
+          ? []
+          : ([
+              [p.method === 'stripe' ? 'Stripe PaymentIntent' : 'PayHere payment ID', p.provider_payment_id ?? '—'],
+              [`${PROVIDER[p.method]} status`, p.status_message ?? (p.provider_status_code !== null ? `Code ${p.provider_status_code}` : '—')],
+            ] as [string, string][])),
         ['Created', dateTime(p.created_at)],
         ['Paid', p.paid_at ? dateTime(p.paid_at) : '—'],
         ...(p.method === 'cod' ? ([['Cash collected', p.collected_at ? `${dateTime(p.collected_at)}${p.collected_by ? ` by ${p.collected_by}` : ''}` : 'Not yet']] as [string, string][]) : []),
@@ -158,7 +165,7 @@ function PaymentDrawer({ reference, onClose }: { reference: string | null; onClo
         <div className="space-y-7">
           {p.status === 'refund_required' && (
             <p className="rounded-xl border border-serious/30 bg-serious/10 px-4 py-3 text-sm text-[#f6b294]">
-              This order was cancelled after it was paid. Issue the refund from the PayHere merchant portal.
+              This order was cancelled after it was paid. Issue the refund from the {p.method === 'stripe' ? 'Stripe Dashboard (Payments → the payment → Refund)' : 'PayHere merchant portal'}.
             </p>
           )}
           <dl className="divide-y divide-rule/70 text-sm">
@@ -187,14 +194,14 @@ function PaymentDrawer({ reference, onClose }: { reference: string | null; onClo
             </section>
           )}
 
-          {p.method === 'payhere' && (
+          {p.method !== 'cod' && (
             <section>
-              <h3 className="mb-2 text-xs font-medium text-dim">PayHere notifications</h3>
+              <h3 className="mb-2 text-xs font-medium text-dim">{p.method === 'stripe' ? 'Stripe events' : 'PayHere notifications'}</h3>
               {!p.events || p.events.length === 0 ? (
                 <p className="text-sm text-dim">
                   {p.status === 'pending'
-                    ? 'No notification from PayHere yet. The payment stays unpaid until one arrives with a valid signature.'
-                    : 'No PayHere notifications are recorded for this payment.'}
+                    ? `Nothing from ${PROVIDER[p.method]} yet. The payment stays unpaid until the server verifies it with ${PROVIDER[p.method]}.`
+                    : `No ${PROVIDER[p.method]} messages are recorded for this payment.`}
                 </p>
               ) : (
                 <ol className="space-y-2">
@@ -203,7 +210,7 @@ function PaymentDrawer({ reference, onClose }: { reference: string | null; onClo
                       {e.signature_valid ? <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-good" aria-hidden="true" /> : <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-bad" aria-hidden="true" />}
                       <div>
                         <p className="text-bone">
-                          {e.signature_valid ? 'Signature verified' : 'Signature invalid, ignored'}
+                          {e.signature_valid ? 'Verified' : 'Signature invalid, ignored'}
                           <span className="text-grey">, {e.outcome.replace(/_/g, ' ')}</span>
                         </p>
                         <p className="text-xs text-dim">

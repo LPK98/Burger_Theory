@@ -14,7 +14,7 @@ import { Logo } from './Logo'
 import { SocialLinks } from './SocialIcons'
 import { EmailText } from './EmailText'
 
-const WORDMARK = 'Bun Theory'
+const WORDMARK = 'Burger Theory'
 const YEAR = new Date().getFullYear()
 
 export function Footer() {
@@ -84,7 +84,7 @@ export function Footer() {
       <p
         data-wordmark
         aria-hidden="true"
-        className="display pointer-events-none flex select-none justify-center overflow-hidden whitespace-nowrap px-2 text-[21.5vw] leading-[0.8] text-cream/[0.07]"
+        className="display pointer-events-none flex select-none justify-center overflow-hidden whitespace-nowrap px-2 text-[16.5vw] leading-[0.8] text-cream/[0.07]"
       >
         {WORDMARK.split('').map((letter, i) => (
           <span key={i} data-letter className="inline-block">

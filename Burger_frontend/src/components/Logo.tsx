@@ -1,7 +1,7 @@
 import { cn } from '../lib/utils'
 
 /**
- * The Bun Theory mark: a burger drawn as an exploded diagram — crown, patty and heel
+ * The Burger Theory mark: a burger drawn as an exploded diagram — crown, patty and heel
  * held apart by a sliver of air — next to a condensed wordmark. Inside a `.logo-link`,
  * the crown and heel drift apart a little on hover (animations.css).
  */
@@ -20,7 +20,7 @@ export function Logo({ className }: { className?: string }) {
     <span className={cn('inline-flex items-center gap-2.5 text-bone', className)}>
       <LogoMark className="text-ember" />
       {/* Caps sit high in their line box; 0.07em down centres them on the mark. */}
-      <span className="display-sm relative top-[0.07em] whitespace-nowrap text-[1.4rem] leading-none">Bun Theory</span>
+      <span className="display-sm relative top-[0.07em] whitespace-nowrap text-[1.4rem] leading-none">Burger Theory</span>
     </span>
   )
 }

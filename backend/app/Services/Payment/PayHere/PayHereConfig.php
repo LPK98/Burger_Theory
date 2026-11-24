@@ -30,11 +30,6 @@ class PayHereConfig
         return $this->isSandbox() ? config('services.payhere.sandbox_checkout_url') : config('services.payhere.live_checkout_url');
     }
 
-    public function currency(): string
-    {
-        return (string) config('services.payhere.currency', 'LKR');
-    }
-
     public function returnUrl(): string
     {
         return (string) config('services.payhere.return_url');

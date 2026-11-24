@@ -1,6 +1,6 @@
-# Bun Theory: a cinematic burger restaurant website
+# Burger Theory: a cinematic burger restaurant website
 
-A scroll-driven, single-page site for **Bun Theory**, a premium smash-burger restaurant.
+A scroll-driven, single-page site for **Burger Theory**, a premium smash-burger restaurant.
 
 The centrepiece is a pinned scene. The burger you land on is the same burger that comes apart layer by layer as you scroll, explains each ingredient, and reassembles before the page moves on. A working menu and frontend cart follow.
 

@@ -197,7 +197,7 @@ function CustomerDrawer({ id, onClose }: { id: number | null; onClose: () => voi
                 Order history
               </h3>
               {c.orders_count > 0 && (
-                <Link to={`/orders?customer_id=${c.id}`} className="text-[0.8125rem] text-ember-hot hover:underline">
+                <Link to={`/orders?customer_id=${c.id}`} className="text-[0.9375rem] text-ember-hot hover:underline">
                   Open in Orders
                 </Link>
               )}
